@@ -1,0 +1,92 @@
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="https://github.com/Suppenhuhn79/pagesnippets" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ps="https://github.com/Suppenhuhn79/pagesnippets">
+	<xsd:element name="pagesnippets">
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="stylesheet">
+					<xsd:complexType>
+						<xsd:attribute type="xsd:string" name="src" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="script">
+					<xsd:complexType>
+						<xsd:attribute type="xsd:string" name="src" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element ref="ps:snippet"/>
+				<xsd:element ref="ps:snippet-group"/>
+			</xsd:choice>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="snippet">
+		<xsd:complexType>
+			<xsd:choice>
+				<xsd:any namespace="##other" processContents="lax"/>
+			</xsd:choice>
+			<xsd:attribute type="xsd:string" name="name" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="snippet-group">
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="ps:snippet"/>
+				<xsd:element ref="ps:snippet-group"/>
+			</xsd:choice>
+			<xsd:attribute type="xsd:string" name="name" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="call-function">
+		<xsd:complexType>
+			<xsd:attribute type="xsd:string" name="name" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="for-each">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attribute type="xsd:string" name="list" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="for-empty">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attribute type="xsd:string" name="list" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="if">
+		<xsd:complexType>
+			<xsd:choice>
+				<xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element ref="ps:if"/>
+				<xsd:element ref="ps:for-each"/>
+				<xsd:element ref="ps:for-empty"/>
+				<xsd:element ref="ps:insert-snippet"/>
+				<xsd:element ref="ps:call-function"/>
+				<xsd:sequence>
+					<xsd:element name="then">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+					<xsd:element name="else" minOccurs="0">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:choice>
+			<xsd:attribute name="test" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="insert-snippet">
+		<xsd:complexType>
+			<xsd:attribute type="xsd:string" name="name" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>
