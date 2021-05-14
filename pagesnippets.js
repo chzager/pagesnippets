@@ -236,6 +236,9 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 					case "insert-snippet":
 						_psInsertSnippet(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
 						break;
+					case "text":
+						targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode, childSourceNode.firstChild.data, variables)));
+						break;
 					default:
 						console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
 					};
@@ -329,7 +332,6 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 		const CHOOSE_MODE_STRICT = "strict";
 		const CHOOSE_MODE_LAX = "lax";
 		let chooseMode = (RegExp("^" + CHOOSE_MODE_STRICT + "$|^" + CHOOSE_MODE_LAX + "$").exec((sourceNode.getAttribute("mode") ?? CHOOSE_MODE_STRICT)) ?? [""])[0];
-		console.log(chooseMode, sourceNode.getAttribute("mode"));
 		if (chooseMode === "")
 		{
 			console.warn("Invalid choose-mode \"" + sourceNode.getAttribute("mode") + "\", using \"strict\".", sourceNode, currentSnippetKey);
