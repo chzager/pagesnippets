@@ -62,6 +62,13 @@
 			<xsd:attribute type="xsd:string" name="name" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
+	<xsd:element name="text">
+		<xsd:complexType>
+			<xsd:simpleContent>
+				<xsd:extension base="xsd:string"/>
+			</xsd:simpleContent>
+		</xsd:complexType>
+	</xsd:element>
 	<xsd:complexType name="ctContent">
 		<xsd:choice minOccurs="0" maxOccurs="unbounded">
 			<xsd:any namespace="##other" processContents="lax"/>
@@ -71,6 +78,7 @@
 			<xsd:element ref="ps:for-each"/>
 			<xsd:element ref="ps:for-empty"/>
 			<xsd:element ref="ps:insert-snippet"/>
+			<xsd:element ref="ps:text"/>
 		</xsd:choice>
 	</xsd:complexType>
 	<xsd:complexType name="ctContentList">
@@ -82,6 +90,7 @@
 			<xsd:element ref="ps:for-each"/>
 			<xsd:element ref="ps:for-empty"/>
 			<xsd:element ref="ps:insert-snippet"/>
+			<xsd:element ref="ps:text"/>
 		</xsd:choice>
 		<xsd:attribute name="list" use="required"/>
 	</xsd:complexType>
@@ -94,6 +103,7 @@
 			<xsd:element ref="ps:for-each"/>
 			<xsd:element ref="ps:for-empty"/>
 			<xsd:element ref="ps:insert-snippet"/>
+			<xsd:element ref="ps:text"/>
 		</xsd:choice>
 		<xsd:attribute name="test" use="required"/>
 	</xsd:complexType>
