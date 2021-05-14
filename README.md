@@ -12,7 +12,7 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
 
 1) Compose your snippets as an XML file:
 
-```XML
+```xml
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <ps:pagesnippets xmlns:ps="https://github.com/Suppenhuhn79/pagesnippets">
   <ps:snippet name="hello">
@@ -22,7 +22,7 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
 ```
 
 2) Include `pageSnippets.js` in your HTML file.
-```HTML
+```html
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
@@ -32,7 +32,7 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
   </head>
 ```
 3) Have a short script that imports the snippet file. Produce the snippet and place it in the document.
-```HTML
+```html
   <body>
     <script>
       pageSnippets.import("snippet.xml").then(() => document.body.appendChild(pageSnippets.hello.produce()));
