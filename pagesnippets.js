@@ -207,7 +207,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			};
 		};
 	};
-	function _appendNodes(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _processNode(sourceNode, targetElement, owner, variables, targetNamespaceURI)
 	{
 		for (let childSourceNode of sourceNode.childNodes)
 		{
@@ -220,6 +220,9 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 					{
 					case "call-function":
 						_psCallFunction(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						break;
+					case "choose":
+						_psChoose(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
 						break;
 					case "for-each":
 						_psForEach(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
@@ -234,14 +237,14 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 						_psInsertSnippet(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
 						break;
 					default:
-						console.warn("Unknown element", childSourceNode, currentSnippetKey);
+						console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
 					};
 				}
 				else
 				{
 					let element = (!!targetNamespaceURI) ? document.createElementNS(targetNamespaceURI, childSourceNode.tagName) : document.createElement(childSourceNode.localName);
 					_addAttributes(childSourceNode, element, owner, variables, targetNamespaceURI);
-					_appendNodes(childSourceNode, element, owner, variables, targetNamespaceURI);
+					_processNode(childSourceNode, element, owner, variables, targetNamespaceURI);
 					_psPostProduction(childSourceNode, element, owner, variables, targetNamespaceURI);
 					targetElement.appendChild(element);
 				};
@@ -297,8 +300,8 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 				}
 				 : variablesList[i];
 				listItem["_position"] = i + 1;
-				listItem["_length"] = ii;
-				_appendNodes(sourceNode, targetElement, owner, listItem, targetNamespaceURI);
+				listItem["_count"] = ii;
+				_processNode(sourceNode, targetElement, owner, listItem, targetNamespaceURI);
 			};
 		}
 		else
@@ -313,7 +316,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 		{
 			if (variables[listKey].length === 0)
 			{
-				_appendNodes(sourceNode, targetElement, owner, variables, targetNamespaceURI);
+				_processNode(sourceNode, targetElement, owner, variables, targetNamespaceURI);
 			};
 		}
 		else
@@ -321,6 +324,48 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
+	function _psChoose(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	{
+		const CHOOSE_MODE_STRICT = "strict";
+		const CHOOSE_MODE_LAX = "lax";
+		let chooseMode = (RegExp("^" + CHOOSE_MODE_STRICT + "$|^" + CHOOSE_MODE_LAX + "$").exec((sourceNode.getAttribute("mode") ?? CHOOSE_MODE_STRICT)) ?? [""])[0];
+		console.log(chooseMode, sourceNode.getAttribute("mode"));
+		if (chooseMode === "")
+		{
+			console.warn("Invalid choose-mode \"" + sourceNode.getAttribute("mode") + "\", using \"strict\".", sourceNode, currentSnippetKey);
+			chooseMode = CHOOSE_MODE_STRICT;
+		}
+		let anyMatch = false;
+		for (let childSourceNode of sourceNode.children)
+		{
+			if (childSourceNode.namespaceURI === pageSnippets.NAMESPACE_URI)
+			{
+				switch (childSourceNode.localName)
+				{
+				case "if":
+					let thisMatch = _psIf(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+					anyMatch = anyMatch || thisMatch;
+					break;
+				case "else":
+					if (anyMatch === false)
+					{
+						_processNode(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+					};
+				break;
+					default:
+					console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
+				};
+				if (anyMatch && (chooseMode === CHOOSE_MODE_STRICT))
+				{
+					break;
+				};
+			}
+			else
+			{
+				console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
+			};
+		};
+	}
 	function _psIf(sourceNode, targetElement, owner, variables, targetNamespaceURI)
 	{
 		let testExpression = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "test") ?? sourceNode.getAttribute("test");
@@ -336,13 +381,9 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 		};
 		if (testResult === true)
 		{
-			let thenNode = ((sourceNode.children[0].namespaceURI === pageSnippets.NAMESPACE_URI) && (sourceNode.children[0].localName === "then")) ? sourceNode.children[0] : sourceNode;
-			_appendNodes(thenNode, targetElement, owner, variables, targetNamespaceURI);
-		}
-		else if ((!!sourceNode.children[1]) && (sourceNode.children[1].namespaceURI === pageSnippets.NAMESPACE_URI) && (sourceNode.children[1].localName === "else"))
-		{
-			_appendNodes(sourceNode.children[1], targetElement, owner, variables, targetNamespaceURI);
+			_processNode(sourceNode, targetElement, owner, variables, targetNamespaceURI);
 		};
+		return testResult;
 	};
 	function _psInsertSnippet(sourceNode, targetElement, owner, variables, targetNamespaceURI)
 	{
@@ -360,14 +401,14 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			}
 			else
 			{
-				console.error("Unknown snippet \"" + snippetPath + "\"", sourceNode, currentSnippetKey);
+				console.error("Unknown snippet \"" + snippetPath + "\".", sourceNode, currentSnippetKey);
 			};
 		};
 	};
 	let currentSnippetKey = this.snippetKey;
 	let result = (!!targetNamespaceURI) ? document.createElementNS(targetNamespaceURI, this.tagName) : document.createElement(this.localName);
 	_addAttributes(this, result, owner, variables, targetNamespaceURI);
-	_appendNodes(this, result, owner, variables, targetNamespaceURI);
+	_processNode(this, result, owner, variables, targetNamespaceURI);
 	_psPostProduction(this, result, owner, variables, targetNamespaceURI);
 	return result;
 };

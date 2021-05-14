@@ -27,7 +27,7 @@
 	</xsd:element>
 	<xsd:element name="snippet-group">
 		<xsd:complexType>
-			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:choice maxOccurs="unbounded">
 				<xsd:element ref="ps:snippet"/>
 				<xsd:element ref="ps:snippet-group"/>
 			</xsd:choice>
@@ -37,6 +37,33 @@
 	<xsd:element name="call-function">
 		<xsd:complexType>
 			<xsd:attribute type="xsd:string" name="name" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="choose">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="ps:if" maxOccurs="unbounded"/>
+				<xsd:element name="else" minOccurs="0">
+					<xsd:complexType>
+						<xsd:choice minOccurs="0" maxOccurs="unbounded">
+							<xsd:any namespace="##other" processContents="lax"/>
+							<xsd:element ref="ps:call-function"/>
+							<xsd:element ref="ps:choose"/>
+							<xsd:element ref="ps:if"/>
+							<xsd:element ref="ps:for-each"/>
+							<xsd:element ref="ps:for-empty"/>
+							<xsd:element ref="ps:insert-snippet"/>
+						</xsd:choice>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="mode" default="strict">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:pattern value="strict|lax"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 	<xsd:element name="for-each">
@@ -57,29 +84,14 @@
 	</xsd:element>
 	<xsd:element name="if">
 		<xsd:complexType>
-			<xsd:choice>
-				<xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:any namespace="##other" processContents="lax"/>
+				<xsd:element ref="ps:call-function"/>
+				<xsd:element ref="ps:choose"/>
 				<xsd:element ref="ps:if"/>
 				<xsd:element ref="ps:for-each"/>
 				<xsd:element ref="ps:for-empty"/>
 				<xsd:element ref="ps:insert-snippet"/>
-				<xsd:element ref="ps:call-function"/>
-				<xsd:sequence>
-					<xsd:element name="then">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-							</xsd:sequence>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="else" minOccurs="0">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-							</xsd:sequence>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:sequence>
 			</xsd:choice>
 			<xsd:attribute name="test" use="required"/>
 		</xsd:complexType>
