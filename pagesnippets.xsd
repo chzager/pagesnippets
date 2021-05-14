@@ -43,19 +43,7 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element ref="ps:if" maxOccurs="unbounded"/>
-				<xsd:element name="else" minOccurs="0">
-					<xsd:complexType>
-						<xsd:choice minOccurs="0" maxOccurs="unbounded">
-							<xsd:any namespace="##other" processContents="lax"/>
-							<xsd:element ref="ps:call-function"/>
-							<xsd:element ref="ps:choose"/>
-							<xsd:element ref="ps:if"/>
-							<xsd:element ref="ps:for-each"/>
-							<xsd:element ref="ps:for-empty"/>
-							<xsd:element ref="ps:insert-snippet"/>
-						</xsd:choice>
-					</xsd:complexType>
-				</xsd:element>
+				<xsd:element name="else" type="ps:ctContent" minOccurs="0"/>
 			</xsd:sequence>
 			<xsd:attribute name="mode" default="strict">
 				<xsd:simpleType>
@@ -66,39 +54,47 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	<xsd:element name="for-each">
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-			</xsd:sequence>
-			<xsd:attribute type="xsd:string" name="list" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
-	<xsd:element name="for-empty">
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-			</xsd:sequence>
-			<xsd:attribute type="xsd:string" name="list" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
-	<xsd:element name="if">
-		<xsd:complexType>
-			<xsd:choice minOccurs="0" maxOccurs="unbounded">
-				<xsd:any namespace="##other" processContents="lax"/>
-				<xsd:element ref="ps:call-function"/>
-				<xsd:element ref="ps:choose"/>
-				<xsd:element ref="ps:if"/>
-				<xsd:element ref="ps:for-each"/>
-				<xsd:element ref="ps:for-empty"/>
-				<xsd:element ref="ps:insert-snippet"/>
-			</xsd:choice>
-			<xsd:attribute name="test" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
+	<xsd:element name="for-each" type="ps:ctContentList"/>
+	<xsd:element name="for-empty" type="ps:ctContentList"/>
+	<xsd:element name="if" type="ps:ctContentTest"/>
 	<xsd:element name="insert-snippet">
 		<xsd:complexType>
 			<xsd:attribute type="xsd:string" name="name" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
+	<xsd:complexType name="ctContent">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:any namespace="##other" processContents="lax"/>
+			<xsd:element ref="ps:call-function"/>
+			<xsd:element ref="ps:choose"/>
+			<xsd:element ref="ps:if"/>
+			<xsd:element ref="ps:for-each"/>
+			<xsd:element ref="ps:for-empty"/>
+			<xsd:element ref="ps:insert-snippet"/>
+		</xsd:choice>
+	</xsd:complexType>
+	<xsd:complexType name="ctContentList">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:any namespace="##other" processContents="lax"/>
+			<xsd:element ref="ps:call-function"/>
+			<xsd:element ref="ps:choose"/>
+			<xsd:element ref="ps:if"/>
+			<xsd:element ref="ps:for-each"/>
+			<xsd:element ref="ps:for-empty"/>
+			<xsd:element ref="ps:insert-snippet"/>
+		</xsd:choice>
+		<xsd:attribute name="list" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="ctContentTest">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:any namespace="##other" processContents="lax"/>
+			<xsd:element ref="ps:call-function"/>
+			<xsd:element ref="ps:choose"/>
+			<xsd:element ref="ps:if"/>
+			<xsd:element ref="ps:for-each"/>
+			<xsd:element ref="ps:for-empty"/>
+			<xsd:element ref="ps:insert-snippet"/>
+		</xsd:choice>
+		<xsd:attribute name="test" use="required"/>
+	</xsd:complexType>
 </xsd:schema>
