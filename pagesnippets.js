@@ -8,7 +8,7 @@ See the full license text at http://www.apache.org/licenses/LICENSE-2.0
 
 const pageSnippets =
 {
-	NAMESPACE_URI: "https://github.com/Suppenhuhn79/pagesnippets"
+	NAMESPACE_URI: "https://github.com/suppenhuhn79/pagesnippets"
 };
 
 pageSnippets.import = function (url)
