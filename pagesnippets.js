@@ -147,10 +147,11 @@ pageSnippets.import = function (url)
 			(ex) => reject(new Error(ex))));
 };
 
-pageSnippets.__produce = function (owner = window, variables = {}, targetNamespaceURI = null)
+pageSnippets.__produce = function (owner = window, variables = {})
 {
 	const NODETYPE_ELEMENT = 1;
 	const NODETYPE_TEXT = 3;
+	const HTML_NAMESPACE_URI = "http://www.w3.org/1999/xhtml";
 	function _getObjectValueByPath(object, path, pathSeparator = ".")
 	{
 		let result;
@@ -186,7 +187,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 		};
 		return result;
 	};
-	function _addAttributes(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _addAttributes(sourceNode, targetElement, owner, variables)
 	{
 		for (let attribute of sourceNode.attributes)
 		{
@@ -203,11 +204,11 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			}
 			else
 			{
-				(!!targetNamespaceURI) ? targetElement.setAttributeNS(targetNamespaceURI, attribute.name, _resolveVariables(sourceNode, attribute.value, variables)) : targetElement.setAttribute(attribute.localName, _resolveVariables(sourceNode, attribute.value, variables));
+				targetElement.setAttribute(attribute.name, _resolveVariables(sourceNode, attribute.value, variables));
 			};
 		};
 	};
-	function _processNode(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _processNode(sourceNode, targetElement, owner, variables)
 	{
 		for (let childSourceNode of sourceNode.childNodes)
 		{
@@ -219,22 +220,22 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 					switch (childSourceNode.localName)
 					{
 					case "call-function":
-						_psCallFunction(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						_psCallFunction(childSourceNode, targetElement, owner, variables);
 						break;
 					case "choose":
-						_psChoose(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						_psChoose(childSourceNode, targetElement, owner, variables);
 						break;
 					case "for-each":
-						_psForEach(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						_psForEach(childSourceNode, targetElement, owner, variables);
 						break;
 					case "for-empty":
-						_psForEmpty(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						_psForEmpty(childSourceNode, targetElement, owner, variables);
 						break;
 					case "if":
-						_psIf(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						_psIf(childSourceNode, targetElement, owner, variables);
 						break;
 					case "insert-snippet":
-						_psInsertSnippet(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						_psInsertSnippet(childSourceNode, targetElement, owner, variables);
 						break;
 					case "text":
 						targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode, childSourceNode.firstChild.data, variables)));
@@ -245,10 +246,10 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 				}
 				else
 				{
-					let element = (!!targetNamespaceURI) ? document.createElementNS(targetNamespaceURI, childSourceNode.tagName) : document.createElement(childSourceNode.localName);
-					_addAttributes(childSourceNode, element, owner, variables, targetNamespaceURI);
-					_processNode(childSourceNode, element, owner, variables, targetNamespaceURI);
-					_psPostProduction(childSourceNode, element, owner, variables, targetNamespaceURI);
+					let element = document.createElementNS(childSourceNode.namespaceURI ?? HTML_NAMESPACE_URI, childSourceNode.tagName);
+					_addAttributes(childSourceNode, element, owner, variables);
+					_processNode(childSourceNode, element, owner, variables);
+					_psPostProduction(childSourceNode, element, owner, variables);
 					targetElement.appendChild(element);
 				};
 				break;
@@ -261,7 +262,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			};
 		};
 	};
-	function _psPostProduction(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _psPostProduction(sourceNode, targetElement, owner, variables)
 	{
 		let postProductionFunction = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "postproduction");
 		if (!!postProductionFunction)
@@ -277,7 +278,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			};
 		};
 	};
-	function _psCallFunction(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _psCallFunction(sourceNode, targetElement, owner, variables)
 	{
 		let functionName = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "name") ?? sourceNode.getAttribute("name");
 		if (typeof owner[functionName] === "function")
@@ -289,7 +290,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			console.error("Function to call \"" + functionName + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
-	function _psForEach(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _psForEach(sourceNode, targetElement, owner, variables)
 	{
 		let listKey = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "list") ?? sourceNode.getAttribute("list");
 		if (!!variables[listKey])
@@ -304,7 +305,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 				 : variablesList[i];
 				listItem["_position"] = i + 1;
 				listItem["_count"] = ii;
-				_processNode(sourceNode, targetElement, owner, listItem, targetNamespaceURI);
+				_processNode(sourceNode, targetElement, owner, listItem);
 			};
 		}
 		else
@@ -312,14 +313,14 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
-	function _psForEmpty(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _psForEmpty(sourceNode, targetElement, owner, variables)
 	{
 		let listKey = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "list") ?? sourceNode.getAttribute("list");
 		if (!!variables[listKey])
 		{
 			if (variables[listKey].length === 0)
 			{
-				_processNode(sourceNode, targetElement, owner, variables, targetNamespaceURI);
+				_processNode(sourceNode, targetElement, owner, variables);
 			};
 		}
 		else
@@ -327,7 +328,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
-	function _psChoose(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _psChoose(sourceNode, targetElement, owner, variables)
 	{
 		const CHOOSE_MODE_STRICT = "strict";
 		const CHOOSE_MODE_LAX = "lax";
@@ -345,13 +346,13 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 				switch (childSourceNode.localName)
 				{
 				case "if":
-					let thisMatch = _psIf(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+					let thisMatch = _psIf(childSourceNode, targetElement, owner, variables);
 					anyMatch = anyMatch || thisMatch;
 					break;
 				case "else":
 					if (anyMatch === false)
 					{
-						_processNode(childSourceNode, targetElement, owner, variables, targetNamespaceURI);
+						_processNode(childSourceNode, targetElement, owner, variables);
 					};
 				break;
 					default:
@@ -368,7 +369,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 			};
 		};
 	}
-	function _psIf(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _psIf(sourceNode, targetElement, owner, variables)
 	{
 		let testExpression = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "test") ?? sourceNode.getAttribute("test");
 		testExpression = _resolveVariables(sourceNode, testExpression, variables, (str) => str.replace("'", "\\'"));
@@ -383,11 +384,11 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 		};
 		if (testResult === true)
 		{
-			_processNode(sourceNode, targetElement, owner, variables, targetNamespaceURI);
+			_processNode(sourceNode, targetElement, owner, variables);
 		};
 		return testResult;
 	};
-	function _psInsertSnippet(sourceNode, targetElement, owner, variables, targetNamespaceURI)
+	function _psInsertSnippet(sourceNode, targetElement, owner, variables)
 	{
 		let snippetPath = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "name") ?? sourceNode.getAttribute("name");
 		let snippet;
@@ -399,7 +400,7 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 		{
 			if (!!snippet)
 			{
-				targetElement.appendChild(snippet.produce(owner, variables, targetNamespaceURI));
+				targetElement.appendChild(snippet.produce(owner, variables));
 			}
 			else
 			{
@@ -408,9 +409,9 @@ pageSnippets.__produce = function (owner = window, variables = {}, targetNamespa
 		};
 	};
 	let currentSnippetKey = this.snippetKey;
-	let result = (!!targetNamespaceURI) ? document.createElementNS(targetNamespaceURI, this.tagName) : document.createElement(this.localName);
-	_addAttributes(this, result, owner, variables, targetNamespaceURI);
-	_processNode(this, result, owner, variables, targetNamespaceURI);
-	_psPostProduction(this, result, owner, variables, targetNamespaceURI);
+	let result = document.createElementNS(this.namespaceURI ?? HTML_NAMESPACE_URI, this.tagName);
+	_addAttributes(this, result, owner, variables);
+	_processNode(this, result, owner, variables);
+	_psPostProduction(this, result, owner, variables);
 	return result;
 };
