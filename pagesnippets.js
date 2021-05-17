@@ -8,7 +8,7 @@ See the full license text at http://www.apache.org/licenses/LICENSE-2.0
 
 const pageSnippets =
 {
-	NAMESPACE_URI: "https://github.com/Suppenhuhn79/pagesnippets"
+	NAMESPACE_URI: "https://github.com/suppenhuhn79/pagesnippets"
 };
 
 pageSnippets.import = function (url)
@@ -147,7 +147,7 @@ pageSnippets.import = function (url)
 			(ex) => reject(new Error(ex))));
 };
 
-pageSnippets.__produce = function (owner = window, variables = {})
+pageSnippets.__produce = function (owner = window, data = {})
 {
 	const NODETYPE_ELEMENT = 1;
 	const NODETYPE_TEXT = 3;
@@ -169,14 +169,14 @@ pageSnippets.__produce = function (owner = window, variables = {})
 		};
 		return result;
 	};
-	function _resolveVariables(sourceNode, text, variables, stringTransformer = null)
+	function _resolveVariables(sourceNode, text, data, stringTransformer = null)
 	{
 		let rex = /\{\{(.*?)\}\}/g;
 		let result = text;
 		let rexResult = rex.exec(text);
 		while (!!rexResult)
 		{
-			let value = _getObjectValueByPath(variables, rexResult[1], ".");
+			let value = _getObjectValueByPath(data, rexResult[1], ".");
 			if (value === undefined)
 			{
 				console.info("\"" + rexResult[1] + "\" is not defined, set to <empty-string>.", sourceNode, currentSnippetKey);
@@ -187,7 +187,7 @@ pageSnippets.__produce = function (owner = window, variables = {})
 		};
 		return result;
 	};
-	function _addAttributes(sourceNode, targetElement, owner, variables)
+	function _addAttributes(sourceNode, targetElement, owner, data)
 	{
 		for (let attribute of sourceNode.attributes)
 		{
@@ -204,11 +204,11 @@ pageSnippets.__produce = function (owner = window, variables = {})
 			}
 			else
 			{
-				targetElement.setAttribute(attribute.name, _resolveVariables(sourceNode, attribute.value, variables));
+				targetElement.setAttribute(attribute.name, _resolveVariables(sourceNode, attribute.value, data));
 			};
 		};
 	};
-	function _processNode(sourceNode, targetElement, owner, variables)
+	function _processNode(sourceNode, targetElement, owner, data)
 	{
 		for (let childSourceNode of sourceNode.childNodes)
 		{
@@ -220,25 +220,25 @@ pageSnippets.__produce = function (owner = window, variables = {})
 					switch (childSourceNode.localName)
 					{
 					case "call-function":
-						_psCallFunction(childSourceNode, targetElement, owner, variables);
+						_psCallFunction(childSourceNode, targetElement, owner, data);
 						break;
 					case "choose":
-						_psChoose(childSourceNode, targetElement, owner, variables);
+						_psChoose(childSourceNode, targetElement, owner, data);
 						break;
 					case "for-each":
-						_psForEach(childSourceNode, targetElement, owner, variables);
+						_psForEach(childSourceNode, targetElement, owner, data);
 						break;
 					case "for-empty":
-						_psForEmpty(childSourceNode, targetElement, owner, variables);
+						_psForEmpty(childSourceNode, targetElement, owner, data);
 						break;
 					case "if":
-						_psIf(childSourceNode, targetElement, owner, variables);
+						_psIf(childSourceNode, targetElement, owner, data);
 						break;
 					case "insert-snippet":
-						_psInsertSnippet(childSourceNode, targetElement, owner, variables);
+						_psInsertSnippet(childSourceNode, targetElement, owner, data);
 						break;
 					case "text":
-						targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode, childSourceNode.firstChild.data, variables)));
+						targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode, childSourceNode.firstChild.data, data)));
 						break;
 					default:
 						console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
@@ -247,22 +247,22 @@ pageSnippets.__produce = function (owner = window, variables = {})
 				else
 				{
 					let element = document.createElementNS(childSourceNode.namespaceURI ?? HTML_NAMESPACE_URI, childSourceNode.tagName);
-					_addAttributes(childSourceNode, element, owner, variables);
-					_processNode(childSourceNode, element, owner, variables);
-					_psPostProduction(childSourceNode, element, owner, variables);
+					_addAttributes(childSourceNode, element, owner, data);
+					_processNode(childSourceNode, element, owner, data);
+					_psPostProduction(childSourceNode, element, owner, data);
 					targetElement.appendChild(element);
 				};
 				break;
 			case NODETYPE_TEXT:
 				if (/^\s*$/.test(childSourceNode.textContent) === false)
 				{
-					targetElement.appendChild(document.createTextNode(_resolveVariables(sourceNode, childSourceNode.textContent, variables)));
+					targetElement.appendChild(document.createTextNode(_resolveVariables(sourceNode, childSourceNode.textContent, data)));
 				};
 				break;
 			};
 		};
 	};
-	function _psPostProduction(sourceNode, targetElement, owner, variables)
+	function _psPostProduction(sourceNode, targetElement, owner, data)
 	{
 		let postProductionFunction = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "postproduction");
 		if (!!postProductionFunction)
@@ -270,7 +270,7 @@ pageSnippets.__produce = function (owner = window, variables = {})
 			targetElement.removeAttributeNS(pageSnippets.NAMESPACE_URI, "postproduction");
 			if (typeof owner[postProductionFunction] === "function")
 			{
-				owner[postProductionFunction](targetElement, variables);
+				owner[postProductionFunction](targetElement, data);
 			}
 			else
 			{
@@ -278,24 +278,24 @@ pageSnippets.__produce = function (owner = window, variables = {})
 			};
 		};
 	};
-	function _psCallFunction(sourceNode, targetElement, owner, variables)
+	function _psCallFunction(sourceNode, targetElement, owner, data)
 	{
 		let functionName = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "name") ?? sourceNode.getAttribute("name");
 		if (typeof owner[functionName] === "function")
 		{
-			owner[functionName](targetElement, variables);
+			owner[functionName](targetElement, data);
 		}
 		else
 		{
 			console.error("Function to call \"" + functionName + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
-	function _psForEach(sourceNode, targetElement, owner, variables)
+	function _psForEach(sourceNode, targetElement, owner, data)
 	{
 		let listKey = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "list") ?? sourceNode.getAttribute("list");
-		if (!!variables[listKey])
+		if (!!data[listKey])
 		{
-			let variablesList = variables[listKey];
+			let variablesList = data[listKey];
 			for (let i = 0, ii = variablesList.length; i < ii; i += 1)
 			{
 				let listItem = (["string", "number", "boolean"].includes(typeof variablesList[i])) ?
@@ -313,14 +313,14 @@ pageSnippets.__produce = function (owner = window, variables = {})
 			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
-	function _psForEmpty(sourceNode, targetElement, owner, variables)
+	function _psForEmpty(sourceNode, targetElement, owner, data)
 	{
 		let listKey = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "list") ?? sourceNode.getAttribute("list");
-		if (!!variables[listKey])
+		if (!!data[listKey])
 		{
-			if (variables[listKey].length === 0)
+			if (data[listKey].length === 0)
 			{
-				_processNode(sourceNode, targetElement, owner, variables);
+				_processNode(sourceNode, targetElement, owner, data);
 			};
 		}
 		else
@@ -328,7 +328,7 @@ pageSnippets.__produce = function (owner = window, variables = {})
 			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
-	function _psChoose(sourceNode, targetElement, owner, variables)
+	function _psChoose(sourceNode, targetElement, owner, data)
 	{
 		const CHOOSE_MODE_STRICT = "strict";
 		const CHOOSE_MODE_LAX = "lax";
@@ -346,13 +346,13 @@ pageSnippets.__produce = function (owner = window, variables = {})
 				switch (childSourceNode.localName)
 				{
 				case "if":
-					let thisMatch = _psIf(childSourceNode, targetElement, owner, variables);
+					let thisMatch = _psIf(childSourceNode, targetElement, owner, data);
 					anyMatch = anyMatch || thisMatch;
 					break;
 				case "else":
 					if (anyMatch === false)
 					{
-						_processNode(childSourceNode, targetElement, owner, variables);
+						_processNode(childSourceNode, targetElement, owner, data);
 					};
 				break;
 					default:
@@ -369,10 +369,10 @@ pageSnippets.__produce = function (owner = window, variables = {})
 			};
 		};
 	}
-	function _psIf(sourceNode, targetElement, owner, variables)
+	function _psIf(sourceNode, targetElement, owner, data)
 	{
 		let testExpression = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "test") ?? sourceNode.getAttribute("test");
-		testExpression = _resolveVariables(sourceNode, testExpression, variables, (str) => str.replace("'", "\\'"));
+		testExpression = _resolveVariables(sourceNode, testExpression, data, (str) => str.replace("'", "\\'"));
 		let testResult;
 		try
 		{
@@ -384,11 +384,11 @@ pageSnippets.__produce = function (owner = window, variables = {})
 		};
 		if (testResult === true)
 		{
-			_processNode(sourceNode, targetElement, owner, variables);
+			_processNode(sourceNode, targetElement, owner, data);
 		};
 		return testResult;
 	};
-	function _psInsertSnippet(sourceNode, targetElement, owner, variables)
+	function _psInsertSnippet(sourceNode, targetElement, owner, data)
 	{
 		let snippetPath = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "name") ?? sourceNode.getAttribute("name");
 		let snippet;
@@ -400,7 +400,7 @@ pageSnippets.__produce = function (owner = window, variables = {})
 		{
 			if (!!snippet)
 			{
-				targetElement.appendChild(snippet.produce(owner, variables));
+				targetElement.appendChild(snippet.produce(owner, data));
 			}
 			else
 			{
@@ -410,8 +410,8 @@ pageSnippets.__produce = function (owner = window, variables = {})
 	};
 	let currentSnippetKey = this.snippetKey;
 	let result = document.createElementNS(this.namespaceURI ?? HTML_NAMESPACE_URI, this.tagName);
-	_addAttributes(this, result, owner, variables);
-	_processNode(this, result, owner, variables);
-	_psPostProduction(this, result, owner, variables);
+	_addAttributes(this, result, owner, data);
+	_processNode(this, result, owner, data);
+	_psPostProduction(this, result, owner, data);
 	return result;
 };
