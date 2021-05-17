@@ -14,7 +14,7 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
 
 ```xml
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<ps:pagesnippets xmlns:ps="https://github.com/Suppenhuhn79/pagesnippets">
+<ps:pagesnippets xmlns:ps="https://github.com/suppenhuhn79/pagesnippets">
   <ps:snippet name="hello">
     <h1>Hello world!</h1>
   </ps:snippet>
