@@ -18,7 +18,7 @@ pageSnippets.import = function (url)
 		return new Promise((resolve, reject) =>
 		{
 			fetch(url).then(
-				(response) => (response.status === 200) ? resolve(response.text()) : reject(response),
+				(response) => (response.status === 200) ? resolve(response.text()) : reject(new ReferenceError("Server returned " + response.status + " (" + response.statusText + ") when trying to fetch " + response.url)),
 				(reason) => reject(reason))
 		}
 		);
@@ -46,7 +46,7 @@ pageSnippets.import = function (url)
 						case "snippet-group":
 							let childGroupName = childNode.getAttribute("name");
 							targetObject[childGroupName] = targetObject[childGroupName] ?? {};
-							_parse(childNode, targetObject[childGroupName], groupName + childGroupName + "/", scriptsCollection);
+							_parse(childNode, targetObject[childGroupName], groupName + ((groupName !== "") ? "/" : "") + childGroupName, scriptsCollection);
 							break;
 						default:
 							if (groupName === "")
@@ -79,11 +79,12 @@ pageSnippets.import = function (url)
 			{
 				let snippetName = node.getAttribute("name");
 				targetObject[snippetName] = node.firstElementChild;
-				targetObject[snippetName].snippetKey = groupName + node.getAttribute("name");
+				targetObject[snippetName].snippetKey = groupName + ((groupName !== "") ? "/" : "") + node.getAttribute("name");
+				targetObject[snippetName].src = url;
 				targetObject[snippetName].produce = pageSnippets.__produce;
 				if (node.childElementCount > 1)
 				{
-					console.warn("Only one child element allowed.", node, url + ":" + groupName + "/");
+					console.warn("Only one child element allowed.", node, url + ":" + ((groupName === "") ? "(root)" : groupName));
 				};
 			};
 			function _includeStylesheet(node)
@@ -147,7 +148,7 @@ pageSnippets.import = function (url)
 			(ex) => reject(new Error(ex))));
 };
 
-pageSnippets.__produce = function (owner = window, data = {})
+pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey = "")
 {
 	const NODETYPE_ELEMENT = 1;
 	const NODETYPE_TEXT = 3;
@@ -354,8 +355,8 @@ pageSnippets.__produce = function (owner = window, data = {})
 					{
 						_processNode(childSourceNode, targetElement, owner, data);
 					};
-				break;
-					default:
+					break;
+				default:
 					console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
 				};
 				if (anyMatch && (chooseMode === CHOOSE_MODE_STRICT))
@@ -400,7 +401,7 @@ pageSnippets.__produce = function (owner = window, data = {})
 		{
 			if (!!snippet)
 			{
-				targetElement.appendChild(snippet.produce(owner, data));
+				targetElement.appendChild(snippet.produce(owner, data, currentSnippetKey));
 			}
 			else
 			{
@@ -408,7 +409,7 @@ pageSnippets.__produce = function (owner = window, data = {})
 			};
 		};
 	};
-	let currentSnippetKey = this.snippetKey;
+	let currentSnippetKey = ((_parentSnippetKey !== "") ? _parentSnippetKey + "->" : "") + this.src + ":" + this.snippetKey;
 	let result = document.createElementNS(this.namespaceURI ?? HTML_NAMESPACE_URI, this.tagName);
 	_addAttributes(this, result, owner, data);
 	_processNode(this, result, owner, data);
