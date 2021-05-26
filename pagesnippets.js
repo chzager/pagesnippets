@@ -192,15 +192,22 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 	{
 		for (let attribute of sourceNode.attributes)
 		{
-			if ((attribute.namespaceURI === pageSnippets.NAMESPACE_URI) && (/on\S+/.test(attribute.localName)))
+			if (attribute.namespaceURI === pageSnippets.NAMESPACE_URI)
 			{
-				if (typeof owner[attribute.value] === "function")
+				if (/^on\S+/.test(attribute.localName))
 				{
-					targetElement[attribute.localName] = owner[attribute.value];
+					if (typeof owner[attribute.value] === "function")
+					{
+						targetElement[attribute.localName] = owner[attribute.value];
+					}
+					else
+					{
+						console.warn("Event handler \"" + attribute.value + "\" is not defined.", sourceNode, "@" + currentSnippetKey);
+					};
 				}
-				else
+				else if (attribute.localName !== "postproduction")
 				{
-					console.warn("Event handler \"" + attribute.value + "\" is not defined.", sourceNode, "@" + currentSnippetKey);
+					console.warn("Attribute not allowed \"" + attribute.name + "\".", sourceNode, "@" + currentSnippetKey);
 				};
 			}
 			else
