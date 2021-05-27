@@ -212,7 +212,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 			}
 			else
 			{
-				targetElement.setAttribute(attribute.name, _resolveVariables(sourceNode, attribute.value, data));
+				targetElement.setAttributeNS(attribute.namespaceURI, attribute.localName, _resolveVariables(sourceNode, attribute.value, data));
 			};
 		};
 	};
@@ -417,7 +417,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 		};
 	};
 	let currentSnippetKey = ((_parentSnippetKey !== "") ? _parentSnippetKey + "->" : "") + this.src + ":" + this.snippetKey;
-	let result = document.createElementNS(this.namespaceURI ?? HTML_NAMESPACE_URI, this.tagName);
+	let result = document.createElementNS(this.namespaceURI ?? HTML_NAMESPACE_URI, this.localName);
 	_addAttributes(this, result, owner, data);
 	_processNode(this, result, owner, data);
 	_psPostProduction(this, result, owner, data);
