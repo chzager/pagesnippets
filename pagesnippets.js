@@ -29,8 +29,7 @@ pageSnippets.import = function (url)
 			function _cleanPath(path)
 			{
 				let templateRoot = url.replace(/[^./]+\.[\S]+$/, "");
-				let result = templateRoot.concat(path).replace(/[^/]+\/\.\.\//g, "");
-				return result;
+				return templateRoot.concat(path).replace(/[^/]+\/\.\.\//g, "");
 			};
 			function _parse(node, targetObject, groupName, scriptsCollection)
 			{
@@ -45,7 +44,7 @@ pageSnippets.import = function (url)
 							break;
 						case "snippet-group":
 							let childGroupName = childNode.getAttribute("name");
-							targetObject[childGroupName] = targetObject[childGroupName] ?? {};
+							targetObject[childGroupName] ??= {};
 							_parse(childNode, targetObject[childGroupName], groupName + ((groupName !== "") ? "/" : "") + childGroupName, scriptsCollection);
 							break;
 						default:
@@ -180,7 +179,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 			let value = _getObjectValueByPath(data, rexResult[1], ".");
 			if (value === undefined)
 			{
-				console.info("\"" + rexResult[1] + "\" is not defined, set to <empty-string>.", sourceNode, "@" + currentSnippetKey);
+				console.info("\"" + rexResult[1] + "\" is not defined, set to <empty-string>.", sourceNode, currentSnippetKey);
 				value = "";
 			};
 			result = result.replace("{{" + rexResult[1] + "}}", ((typeof stringTransformer === "function") ? stringTransformer(String(value)) : value));
@@ -202,12 +201,12 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 					}
 					else
 					{
-						console.warn("Event handler \"" + attribute.value + "\" is not defined.", sourceNode, "@" + currentSnippetKey);
+						console.warn("Event handler \"" + attribute.value + "\" is not defined.", sourceNode, currentSnippetKey);
 					};
 				}
 				else if (attribute.localName !== "postproduction")
 				{
-					console.warn("Attribute not allowed \"" + attribute.name + "\".", sourceNode, "@" + currentSnippetKey);
+					console.warn("Attribute not allowed \"" + attribute.name + "\".", sourceNode, currentSnippetKey);
 				};
 			}
 			else
@@ -249,7 +248,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 						targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode, childSourceNode.firstChild.data, data)));
 						break;
 					default:
-						console.warn("Element not allowed here.", childSourceNode, "@" + currentSnippetKey);
+						console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
 					};
 				}
 				else
@@ -282,7 +281,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 			}
 			else
 			{
-				console.error("Postproduction function \"" + postProductionFunction + "\" is not defined.", sourceNode, "@" + currentSnippetKey);
+				console.error("Postproduction function \"" + postProductionFunction + "\" is not defined.", sourceNode, currentSnippetKey);
 			};
 		};
 	};
@@ -295,7 +294,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 		}
 		else
 		{
-			console.error("Function to call \"" + functionName + "\" is not defined.", sourceNode, "@" + currentSnippetKey);
+			console.error("Function to call \"" + functionName + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
 	function _psForEach(sourceNode, targetElement, owner, data)
@@ -318,7 +317,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 		}
 		else
 		{
-			console.error("\"" + listKey + "\" is not defined.", sourceNode, "@" + currentSnippetKey);
+			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
 	function _psForEmpty(sourceNode, targetElement, owner, data)
@@ -333,7 +332,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 		}
 		else
 		{
-			console.error("\"" + listKey + "\" is not defined.", sourceNode, "@" + currentSnippetKey);
+			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 		};
 	};
 	function _psChoose(sourceNode, targetElement, owner, data)
@@ -343,7 +342,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 		let chooseMode = (RegExp("^" + CHOOSE_MODE_STRICT + "$|^" + CHOOSE_MODE_LAX + "$").exec((sourceNode.getAttribute("mode") ?? CHOOSE_MODE_STRICT)) ?? [""])[0];
 		if (chooseMode === "")
 		{
-			console.warn("Invalid choose-mode \"" + sourceNode.getAttribute("mode") + "\", using \"strict\".", sourceNode, "@" + currentSnippetKey);
+			console.warn("Invalid choose-mode \"" + sourceNode.getAttribute("mode") + "\", using \"strict\".", sourceNode, currentSnippetKey);
 			chooseMode = CHOOSE_MODE_STRICT;
 		}
 		let anyMatch = false;
@@ -364,7 +363,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 					};
 					break;
 				default:
-					console.warn("Element not allowed here.", childSourceNode, "@" + currentSnippetKey);
+					console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
 				};
 				if (anyMatch && (chooseMode === CHOOSE_MODE_STRICT))
 				{
@@ -373,7 +372,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 			}
 			else
 			{
-				console.warn("Element not allowed here.", childSourceNode, "@" + currentSnippetKey);
+				console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
 			};
 		};
 	}
@@ -388,7 +387,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 		}
 		catch (ex)
 		{
-			console.error("Cannot evaluate expression \"" + testExpression + "\": " + ex.message, sourceNode, "@" + currentSnippetKey);
+			console.error("Cannot evaluate expression \"" + testExpression + "\": " + ex.message, sourceNode, currentSnippetKey);
 		};
 		if (testResult === true)
 		{
@@ -412,11 +411,11 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 			}
 			else
 			{
-				console.error("Unknown snippet \"" + snippetPath + "\".", sourceNode, "@" + currentSnippetKey);
+				console.error("Unknown snippet \"" + snippetPath + "\".", sourceNode, currentSnippetKey);
 			};
 		};
 	};
-	let currentSnippetKey = ((_parentSnippetKey !== "") ? _parentSnippetKey + "->" : "") + this.snippetKey + "@" + this.src;
+	let currentSnippetKey = ((_parentSnippetKey !== "") ? _parentSnippetKey + "->" : "") + "@" + this.src + ":" + this.snippetKey;
 	let result = document.createElementNS(this.namespaceURI ?? HTML_NAMESPACE_URI, this.localName);
 	_addAttributes(this, result, owner, data);
 	_processNode(this, result, owner, data);
