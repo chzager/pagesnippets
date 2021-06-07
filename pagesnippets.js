@@ -310,7 +310,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 				{
 					"_value": variablesList[i]
 				}
-				 : variablesList[i];
+				 : Object.assign({}, variablesList[i]);
 				listItem["_position"] = i + 1;
 				listItem["_count"] = ii;
 				_processNode(sourceNode, targetElement, owner, listItem);
@@ -416,7 +416,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 			};
 		};
 	};
-	let currentSnippetKey = ((_parentSnippetKey !== "") ? _parentSnippetKey + "->" : "") + this.src + ":" + this.snippetKey;
+	let currentSnippetKey = ((_parentSnippetKey !== "") ? _parentSnippetKey + "->" : "") + this.snippetKey + "@" + this.src;
 	let result = document.createElementNS(this.namespaceURI ?? HTML_NAMESPACE_URI, this.localName);
 	_addAttributes(this, result, owner, data);
 	_processNode(this, result, owner, data);
