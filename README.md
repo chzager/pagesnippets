@@ -28,7 +28,7 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
   <head>
     <title>pageSnippets Demo</title>
     <meta charset="utf-8" />
-    <script src="pagesnippets.js"></script>
+    <script src="https://suppenhuhn79.github.io/pagesnippets/pagesnippets.js"></script>
   </head>
 ```
 3) Have a short script that imports the snippet file. Produce the snippet and place it in the document.
