@@ -303,16 +303,9 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 	function _psForEmpty(sourceNode, targetElement, owner, data)
 	{
 		let listKey = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "list") ?? sourceNode.getAttribute("list");
-		if (!!data[listKey])
+		if ((!data[listKey]) || (data[listKey].length === 0))
 		{
-			if (data[listKey].length === 0)
-			{
-				_processNode(sourceNode, targetElement, owner, data);
-			}
-		}
-		else
-		{
-			console.error("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
+			_processNode(sourceNode, targetElement, owner, data);
 		}
 	}
 	function _psChoose(sourceNode, targetElement, owner, data)
