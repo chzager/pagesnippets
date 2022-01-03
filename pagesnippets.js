@@ -292,7 +292,7 @@ pageSnippets.__produce = function (owner = window, data = {}, _parentSnippetKey 
 				let listItem = (["string", "number", "boolean"].includes(typeof variablesList[i])) ? {"_value": variablesList[i]} : Object.assign({}, variablesList[i]);
 				listItem["_position"] = i + 1;
 				listItem["_count"] = ii;
-				_processNode(sourceNode, targetElement, owner, listItem);
+				_processNode(sourceNode, targetElement, owner, Object.assign({}, data, listItem));
 			}
 		}
 		else
