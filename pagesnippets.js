@@ -58,9 +58,10 @@ const pageSnippets =
 					{
 						if (/^on\S+/.test(attribute.localName))
 						{
-							if (typeof owner[attribute.value] === "function")
+							let referencedFunction = __getObjectValueByPath(owner, attribute.value);
+							if (typeof referencedFunction === "function")
 							{
-								targetElement[attribute.localName] = owner[attribute.value];
+								targetElement[attribute.localName] = referencedFunction;
 							}
 							else
 							{
@@ -134,26 +135,28 @@ const pageSnippets =
 			}
 			function __psPostProduction(sourceNode, targetElement, owner, data)
 			{
-				let postProductionFunction = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "postproduction");
-				if (!!postProductionFunction)
+				let postProductionFunctionName = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "postproduction");
+				if (!!postProductionFunctionName)
 				{
 					targetElement.removeAttributeNS(pageSnippets.NAMESPACE_URI, "postproduction");
-					if (typeof owner[postProductionFunction] === "function")
+					let referencedFunction = __getObjectValueByPath(owner, postProductionFunctionName);
+					if (typeof referencedFunction === "function")
 					{
-						owner[postProductionFunction](targetElement, data);
+						referencedFunction(targetElement, data);
 					}
 					else
 					{
-						console.error("Postproduction function \"" + postProductionFunction + "\" is not defined.", sourceNode, currentSnippetKey);
+						console.error("Postproduction function \"" + postProductionFunctionName + "\" is not defined.", sourceNode, currentSnippetKey);
 					}
 				}
 			}
 			function __psCallFunction(sourceNode, targetElement, owner, data)
 			{
 				let functionName = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "name") ?? sourceNode.getAttribute("name");
-				if (typeof owner[functionName] === "function")
+				let referencedFunction = __getObjectValueByPath(owner, functionName);
+				if (typeof referencedFunction === "function")
 				{
-					owner[functionName](targetElement, data);
+					referencedFunction(targetElement, data);
 				}
 				else
 				{
