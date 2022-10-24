@@ -7,14 +7,15 @@ See the full license text at http://www.apache.org/licenses/LICENSE-2.0
 const pageSnippets =
 {
 	NAMESPACE_URI: "https://github.com/suppenhuhn79/pagesnippets",
-	import: (url) => {
+	import: (url) =>
+	{
 		function _fetch (url)
 		{
 			return new Promise((resolve, reject) =>
 			{
 				fetch(url).then(
 					(response) => (response.status === 200) ? resolve(response.text()) : reject(new ReferenceError("Server returned " + response.status + " (" + response.statusText + ") when trying to fetch " + response.url)),
-					(reason) => reject(reason))
+					(reason) => reject(reason));
 			});
 		};
 		function _produce (owner = window, data = {}, _parentSnippetKey = "")
@@ -32,7 +33,7 @@ const pageSnippets =
 				}
 				return result;
 			}
-			function __resolveVariables(sourceNode, text, data, stringTransformer = null)
+			function __resolveVariables (sourceNode, text, data, stringTransformer = null)
 			{
 				let rex = /\{\{(.*?)\}\}/g;
 				let result = text;
@@ -50,7 +51,18 @@ const pageSnippets =
 				}
 				return result;
 			}
-			function __addAttributes(sourceNode, targetElement, owner, data)
+			function __resolveUnicodeEntities (text)
+			{
+				let rex = /&#x([0-9a-f]+);/i;
+				let rem = rex.exec(text);
+				while (rem)
+				{
+					text = text.replace(rem[0], JSON.parse("\"\\u" + rem[1].padStart(4, "0") + "\""));
+					rem = /&#x([0-9a-f]+);/i.exec(text);
+				}
+				return text;
+			}
+			function __addAttributes (sourceNode, targetElement, owner, data)
 			{
 				for (let attribute of sourceNode.attributes)
 				{
@@ -79,7 +91,7 @@ const pageSnippets =
 					}
 				}
 			}
-			function __processNode(sourceNode, targetElement, owner, data)
+			function __processNode (sourceNode, targetElement, owner, data)
 			{
 				for (let childSourceNode of sourceNode.childNodes)
 				{
@@ -109,7 +121,7 @@ const pageSnippets =
 										__psInsertSnippet(childSourceNode, targetElement, owner, data);
 										break;
 									case "text":
-										targetElement.appendChild(document.createTextNode(__resolveVariables(childSourceNode, childSourceNode.firstChild.data, data)));
+										targetElement.appendChild(document.createTextNode(__resolveUnicodeEntities(__resolveVariables(childSourceNode, childSourceNode.firstChild.data, data))));
 										break;
 									default:
 										console.warn("Element not allowed here.", childSourceNode, currentSnippetKey);
@@ -127,13 +139,13 @@ const pageSnippets =
 						case NODETYPE_TEXT:
 							if (/^\s*$/.test(childSourceNode.textContent) === false)
 							{
-								targetElement.appendChild(document.createTextNode(__resolveVariables(sourceNode, childSourceNode.textContent, data)));
+								targetElement.appendChild(document.createTextNode(__resolveUnicodeEntities(__resolveVariables(sourceNode, childSourceNode.textContent, data))));
 							}
 							break;
 					}
 				}
 			}
-			function __psPostProduction(sourceNode, targetElement, owner, data)
+			function __psPostProduction (sourceNode, targetElement, owner, data)
 			{
 				let postProductionFunctionName = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "postproduction");
 				if (!!postProductionFunctionName)
@@ -150,7 +162,7 @@ const pageSnippets =
 					}
 				}
 			}
-			function __psCallFunction(sourceNode, targetElement, owner, data)
+			function __psCallFunction (sourceNode, targetElement, owner, data)
 			{
 				let functionName = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "name") ?? sourceNode.getAttribute("name");
 				let referencedFunction = __getObjectValueByPath(owner, functionName);
@@ -163,7 +175,7 @@ const pageSnippets =
 					console.error("Function to call \"" + functionName + "\" is not defined.", sourceNode, currentSnippetKey);
 				}
 			}
-			function __psForEach(sourceNode, targetElement, owner, data)
+			function __psForEach (sourceNode, targetElement, owner, data)
 			{
 				let listKey = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "list") ?? sourceNode.getAttribute("list");
 				if (!!data[listKey])
@@ -171,7 +183,7 @@ const pageSnippets =
 					let variablesList = data[listKey];
 					for (let i = 0, ii = variablesList.length; i < ii; i += 1)
 					{
-						let listItem = (["string", "number", "boolean"].includes(typeof variablesList[i])) ? {"_value": variablesList[i]} : Object.assign({}, variablesList[i]);
+						let listItem = (["string", "number", "boolean"].includes(typeof variablesList[i])) ? { "_value": variablesList[i] } : Object.assign({}, variablesList[i]);
 						listItem["_position"] = i + 1;
 						listItem["_count"] = ii;
 						__processNode(sourceNode, targetElement, owner, Object.assign({}, data, listItem));
@@ -182,7 +194,7 @@ const pageSnippets =
 					console.warn("\"" + listKey + "\" is not defined.", sourceNode, currentSnippetKey);
 				}
 			}
-			function __psForEmpty(sourceNode, targetElement, owner, data)
+			function __psForEmpty (sourceNode, targetElement, owner, data)
 			{
 				let listKey = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "list") ?? sourceNode.getAttribute("list");
 				if ((!data[listKey]) || (data[listKey].length === 0))
@@ -190,7 +202,7 @@ const pageSnippets =
 					__processNode(sourceNode, targetElement, owner, data);
 				}
 			}
-			function __psChoose(sourceNode, targetElement, owner, data)
+			function __psChoose (sourceNode, targetElement, owner, data)
 			{
 				const CHOOSE_MODE_STRICT = "strict";
 				const CHOOSE_MODE_LAX = "lax";
@@ -231,14 +243,14 @@ const pageSnippets =
 					}
 				}
 			}
-			function __psIf(sourceNode, targetElement, owner, data)
+			function __psIf (sourceNode, targetElement, owner, data)
 			{
 				let testExpression = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "test") ?? sourceNode.getAttribute("test");
 				testExpression = __resolveVariables(sourceNode, testExpression, data, (str) => str.replace("'", "\\'"));
 				let testResult;
 				try
 				{
-					testResult = eval(testExpression)
+					testResult = eval(testExpression);
 				}
 				catch (ex)
 				{
@@ -250,7 +262,7 @@ const pageSnippets =
 				}
 				return testResult;
 			}
-			function __psInsertSnippet(sourceNode, targetElement, owner, data)
+			function __psInsertSnippet (sourceNode, targetElement, owner, data)
 			{
 				let snippetPath = sourceNode.getAttributeNS(pageSnippets.NAMESPACE_URI, "name") ?? sourceNode.getAttribute("name");
 				let snippet;
@@ -278,13 +290,14 @@ const pageSnippets =
 			return result;
 		};
 		return new Promise((resolve, reject) => _fetch(url).then(
-			(data) => {
-				function _cleanPath(path)
+			(data) =>
+			{
+				function _cleanPath (path)
 				{
 					let templateRoot = url.replace(/[^./]+\.[\S]+$/, "");
 					return templateRoot.concat(path).replace(/[^/]+\/\.\.\//g, "");
 				}
-				function _parse(node, targetObject, groupName, scriptsCollection)
+				function _parse (node, targetObject, groupName, scriptsCollection)
 				{
 					for (let childNode of node.children)
 					{
@@ -319,21 +332,21 @@ const pageSnippets =
 						}
 					}
 				}
-				function _appendSnippet(node, targetObject, groupName)
+				function _appendSnippet (node, targetObject, groupName)
 				{
 					let snippetName = node.getAttribute("name");
 					targetObject[snippetName] = Object.assign(node.firstElementChild,
-					{
-						snippetKey: groupName + ((groupName !== "") ? "/" : "") + node.getAttribute("name"),
-						src: url,
-						produce: _produce
-					});
+						{
+							snippetKey: groupName + ((groupName !== "") ? "/" : "") + node.getAttribute("name"),
+							src: url,
+							produce: _produce
+						});
 					if (node.childElementCount > 1)
 					{
 						console.warn("Only one child element allowed.", node, "@" + url + ":" + ((groupName === "") ? "(root)" : groupName));
 					}
 				}
-				function _includeStylesheet(node)
+				function _includeStylesheet (node)
 				{
 					let styleNode = document.createElement("link");
 					let src = _cleanPath(node.getAttribute("src"));
@@ -344,10 +357,10 @@ const pageSnippets =
 						document.head.appendChild(styleNode);
 					}
 				}
-				function _includeScripts(scriptsCollection)
+				function _includeScripts (scriptsCollection)
 				{
 					let scriptsToLoad = scriptsCollection.length;
-					function __onScriptLoadend(loadEvent)
+					function __onScriptLoadend (loadEvent)
 					{
 						if (loadEvent.type === "error")
 						{
