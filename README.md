@@ -10,7 +10,7 @@ pageSnippets is a JavaScript tool for dynamically and easily creating complex HT
 
 This short example to gives you a glimpse how easy it is to use pageSnippets.
 
-1) Compose your snippets as an XML file:
+1. Compose your snippets as an XML file:
 
 ```xml
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
@@ -21,25 +21,30 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
 </ps:pagesnippets>
 ```
 
-2) Include `pageSnippets.js` in your HTML file.
+2. Include `pageSnippets2.js` in your HTML file. (Note that the previous version 'pageSnippets.js' is deprecated and will be discontinued.)
+
 ```html
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>pageSnippets Demo</title>
-    <meta charset="utf-8" />
-    <script src="https://suppenhuhn79.github.io/pagesnippets/pagesnippets.js"></script>
-  </head>
+	<head>
+		<title>pageSnippets Demo</title>
+		<meta charset="utf-8" />
+		<script src="https://suppenhuhn79.github.io/pagesnippets/pagesnippets2.js"></script>
+	</head>
+</html>
 ```
-3) Have a short script that imports the snippet file. Produce the snippet and place it in the document.
+
+3. Have a short script that imports the snippet file. Produce the snippet and place it in the document.
+
 ```html
   <body>
     <script>
-      pageSnippets.import("snippet.xml").then(() => document.body.appendChild(pageSnippets.hello.produce()));
+      pageSnippets.import("snippet.xml").then(() => document.body.appendChild(pageSnippets.produce("hello")));
     </script>
   </body>
 </html>
 ```
+
 You're done.
 
 Of course there's more! Unleash its full power with [placeholders](https://github.com/Suppenhuhn79/pagesnippets/wiki/Placeholders), [conditions](https://github.com/Suppenhuhn79/pagesnippets/wiki/Conditions), [lists](https://github.com/Suppenhuhn79/pagesnippets/wiki/Lists) and much more. Find a full
@@ -48,3 +53,4 @@ reference in the [wiki](https://github.com/Suppenhuhn79/pagesnippets/wiki).
 ## Licence
 
 pageSnippets is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
