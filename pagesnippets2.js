@@ -334,7 +334,7 @@ let pageSnippets = new function ()
 			while (!!rexResult)
 			{
 				let value = _getObjectValueByPath(data, rexResult[1]) ?? "";
-				result = result.replace(rexResult[0], value);
+				result = result.replace(rexResult[0], (value instanceof Date) ? value.toISOString() : value.toString());
 				rexResult = rex.exec(text);
 			}
 			return result;
