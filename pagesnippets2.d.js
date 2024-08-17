@@ -7,6 +7,7 @@
  * Function type that is used as callback in `ps:postproduction` attributes and `<ps:call-function>` nodes.
  * @param {Element} element Currently processed target element.
  * @param {PageSnippetsProductionData} data Data provided to build the target element.
+ * @returns {void}
  *
  * @typedef PageSnippetsMeta
  * A page snippets meta data.
