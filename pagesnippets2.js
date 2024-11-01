@@ -149,7 +149,7 @@ let pageSnippets = new function ()
 									}
 									else if ((groupName === "") && (childNode.localName === "stylesheet"))
 									{
-										_includeStylesheet(childNode, location);
+										_includeStylesheet(childNode);
 									}
 									else if ((groupName === "") && (childNode.localName === "script"))
 									{
