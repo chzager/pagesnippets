@@ -23,4 +23,5 @@
  * @param {PageSnippetsProductionData} data Data provided to build the target element.
  * @param {string} origin Listing of source document nodes that lead to this function call.
  * @returns {void}
+ *
  */

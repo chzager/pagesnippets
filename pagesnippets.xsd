@@ -66,7 +66,10 @@
 	<xsd:element name="text">
 		<xsd:complexType>
 			<xsd:simpleContent>
-				<xsd:extension base="xsd:string" />
+				<xsd:extension base="xsd:string">
+					<xsd:attribute type="xsd:string" name="date-format" />
+					<xsd:attribute type="xsd:string" name="number-format" />
+				</xsd:extension>
 			</xsd:simpleContent>
 		</xsd:complexType>
 	</xsd:element>

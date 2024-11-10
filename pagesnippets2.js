@@ -74,6 +74,13 @@ let pageSnippets = new function ()
 	}
 
 	/**
+	 * The locale to be used when formatting numbers and dates in `<ps:text>` nodes.
+	 * Default: `"default"`.
+	 * @type {Intl.LocalesArgument}
+	 */
+	this.locale = "default";
+
+	/**
 	 * Imports a PageSnippet file.
 	 *
 	 * This instantly adds the scripts and stylesheets referenced in the file to the current HTML document.
@@ -319,14 +326,15 @@ let pageSnippets = new function ()
 		}
 
 		/**
-		 * Replaces all placehoders ("`{{value}}`") in a string by the respective values given in the production data.
+		 * Replaces all placeholders ("`{{key}}`") in a string by the respective values given in the production data.
 		 *
 		 * If there is no data for a placeholder, it is replaced by an empty string.
 		 * @param {string} text String that may contain placeholders to be replaced.
 		 * @param {PageSnippetsProductionData} data Production data from whitch to insert values.
+		 * @param {Element} [sourceNode] The snippets source node that does contain the variables (for `number-format` and `date-format` attributes).
 		 * @returns {string} Returns the given string with placeholders replaced by values.
 		 */
-		function _resolveVariables (text, data)
+		function _resolveVariables (text, data, sourceNode)
 		{
 			let result = text;
 			let rex = /\{\{(.*?)\}\}/g;
@@ -334,7 +342,103 @@ let pageSnippets = new function ()
 			while (!!rexResult)
 			{
 				let value = _getObjectValueByPath(data, rexResult[1]) ?? "";
-				result = result.replace(rexResult[0], (value instanceof Date) ? value.toISOString() : value.toString());
+				if (typeof value === "number")
+				{
+					let numberFormat = sourceNode?.attributes.getNamedItem("number-format")?.value;
+					if (!!numberFormat)
+					{
+						let decimalsFormat = /^\+?[^.]+/.exec(numberFormat)?.[0] ?? "0";
+						let fractionFormat = /\.(.*)$/.exec(numberFormat)?.[1] ?? "";
+						let minimumFractionDigits = Math.max(fractionFormat.replace(/[^0]/g, "").length, 1);
+						let numStr = value.toLocaleString(undefined, {
+							roundingPriority: "lessPrecision",
+							roundingMode: "trunc",
+							useGrouping: numberFormat.includes(","),
+							signDisplay: (numberFormat.includes("+")) ? "always" : "auto",
+							trailingZeroDisplay: (/\.#/.test(numberFormat)) ? "stripIfInteger" : "auto",
+							minimumIntegerDigits: Math.max(decimalsFormat.replace(/[^0]/g, "").length, 1),
+							minimumFractionDigits: minimumFractionDigits,
+							maximumFractionDigits: Math.max(fractionFormat.length, minimumFractionDigits)
+						});
+						result = result.replace(rexResult[0], numStr);
+					}
+					else
+					{
+						result = result.replace(rexResult[0], value.toString());
+					}
+				}
+				else if (value instanceof Date)
+				{
+					let dateStr = sourceNode?.attributes.getNamedItem("date-format")?.value;
+					if (!!dateStr)
+					{
+						for (let regxMatch of dateStr.matchAll(/D{1,4}|d{1,2}|M{1,4}|m{1,2}|y{4}|y{2}|h{1,2}|n{2}|s{2}/g))
+						{
+							let tag = regxMatch[0];
+							let numChars = tag.length;
+							let val = "";
+							switch (tag)
+							{
+								case "d":
+								case "dd":
+									val = value.getDate().toString();
+									break;
+								case "D":
+								case "DD":
+								case "DDD":
+								case "DDDD":
+									val = value.toLocaleDateString(pageSnippets.locale, { weekday: "long" });
+									if (numChars < 4)
+									{
+										val = val.substring(0, numChars);
+									}
+									break;
+								case "m":
+								case "mm":
+									val = (value.getMonth() + 1).toString();
+									break;
+								case "M":
+								case "MM":
+								case "MMM":
+								case "MMMM":
+									val = value.toLocaleDateString(pageSnippets.locale, { month: "long" });
+									if (numChars < 4)
+									{
+										val = val.substring(0, numChars);
+									}
+									break;
+								case "yy":
+									val = value.getFullYear().toString().substring(2, 4);
+									break;
+								case "yyyy":
+									val = value.getFullYear().toString();
+									break;
+								case "h":
+								case "hh":
+									val = value.getHours().toString();
+									break;
+								case "nn":
+									val = value.getMinutes().toString();
+									break;
+								case "ss":
+									val = value.getSeconds().toString();
+									break;
+								default:
+									val = "";
+							}
+							dateStr = dateStr.replace(tag, val.padStart(numChars, "0"));
+						}
+						result = result.replace(rexResult[0], dateStr);
+					}
+					else
+					{
+						result = result.replace(rexResult[0], value.toJSON());
+					}
+				}
+				else
+				{
+					result = result.replace(rexResult[0], value.toString());
+				}
 				rexResult = rex.exec(text);
 			}
 			return result;
@@ -375,7 +479,7 @@ let pageSnippets = new function ()
 									__psInsertSnippet(childSourceNode, targetElement, data, location);
 									break;
 								case "text":
-									targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode.firstChild.data, data)));
+									targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode.firstChild.data, data, childSourceNode)));
 									break;
 								default:
 									console.warn("Element not allowed here.\n" + _originToString(location));
@@ -393,7 +497,7 @@ let pageSnippets = new function ()
 					case NODETYPE_TEXT:
 						if (/^\s*$/.test(childSourceNode.textContent) === false)
 						{
-							targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode.textContent, data)));
+							targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode.textContent, data, childSourceNode.parentElement)));
 						}
 						break;
 				}
