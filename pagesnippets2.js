@@ -1,9 +1,10 @@
 /// <reference path="./pagesnippets2.d.js" />
 /**
  * PageSnippets - dynamically load and produce HTML or XML.
- * @version 2.1
- * @copyright Copyright 2023 Christoph Zager
- * @link https://github.com/suppenhuhn79/pagesnippets
+ *
+ * https://github.com/chzager/pagesnippets
+ * @version 2.2
+ * @copyright (c) 2023 Christoph Zager
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  */
 let pageSnippets = new function ()
@@ -11,7 +12,7 @@ let pageSnippets = new function ()
 	/**
 	 * PageSnippets XML scheme namespace URI.
 	 */
-	const PS_NAMESPACE_URI = "https://github.com/suppenhuhn79/pagesnippets";
+	const PS_NAMESPACE_URI = "https://github.com/chzager/pagesnippets";
 
 	/**
 	 * HTML namespace URI.

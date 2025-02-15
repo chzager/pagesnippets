@@ -1,4 +1,4 @@
-<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="https://github.com/suppenhuhn79/pagesnippets" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ps="https://github.com/suppenhuhn79/pagesnippets">
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="https://github.com/chzager/pagesnippets" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ps="https://github.com/chzager/pagesnippets">
 	<xsd:element name="pagesnippets">
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="unbounded">
