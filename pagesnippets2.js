@@ -1,13 +1,12 @@
-/// <reference path="./pagesnippets2.d.js" />
 /**
  * PageSnippets - dynamically load and produce HTML or XML.
  *
- * https://github.com/chzager/pagesnippets
+ * @link https://github.com/chzager/pagesnippets
  * @version 2.2
  * @copyright (c) 2023 Christoph Zager
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  */
-let pageSnippets = new function ()
+const pageSnippets = new function ()
 {
 	/**
 	 * PageSnippets XML scheme namespace URI.
@@ -34,7 +33,7 @@ let pageSnippets = new function ()
 	 * From a snippet key or a path crumb array this retuns a normalized key string.
 	 * @param {string|Array<string>} key Snippet name including its path, or an array with an item for each path crumb and the snippets name.
 	 * @param {boolean} [asPath] Whether th returned value should be a path (`true`), then its trailied by a slash. Defalt is `false`.
-	 * @returns {string} Returns the normalizes snippet key, indluding a leading slash and its full path.
+	 * @returns {string} The normalized snippet key, indluding a leading slash and its full path.
 	 * @example
 	 * normalizeSnippetKey(["foo", "bar"])
 	 * // returns "/foo/bar"
@@ -49,11 +48,11 @@ let pageSnippets = new function ()
 	}
 
 	/**
-	 * Returns a listing of source document nodes that lead to this node including this node reference.
+	 * Returns a list of source document nodes that lead to this node including this node reference.
 	 * @param {Element} node Source element that is currently processed.
 	 * @param {string} source Filename and snippet name of the node.
-	 * @param {string} origin Listing of source document nodes that lead to this node.
-	 * @returns {string} Returns a listing of source document nodes that lead to this node including this node reference.
+	 * @param {string} origin List of source document nodes that lead to this node.
+	 * @returns {string} A list of source document nodes that lead to this node including this node reference.
 	 */
 	function _updateCallHistory (node, source, origin)
 	{
@@ -88,7 +87,7 @@ let pageSnippets = new function ()
 	 * You need to call `pageSnippets.produce()` to get a snippet node that can be placed on the page.
 	 *
 	 * @param {string} url URL of PageSnippets XML file to be loaded.
-	 * @returns {Promise<void,Error>} Returns a void promise or rejects the promise with an error.
+	 * @returns {Promise<void>} A `Promise` tht resolves to `void` or rejects with an error.
 	 */
 	this.import = function (url)
 	{
@@ -305,11 +304,11 @@ let pageSnippets = new function ()
 	};
 
 	/**
-	 * Produces an actual HTML- or XML-element out of a page snippet.
+	 * Produces an actual HTML- or XML-element from a page snippet.
 	 * @param {string|Array<string>} snippetKey Key of snippet to be produced. This may be a single string (snippet name including its path), or an array with an item for each path crumb and the snippets name.
-	 * @param {PageSnippetsProductionData} [data] Data needed to produce the snippet - values for placeholders, lists, event handler functions etc.
+	 * @param {PageSnippetsProductionData} [data] Data needed to produce the snippet: values for placeholders, lists, event handler functions etc.
 	 * @param {string} [_origin] _Resticted for internal use only._ Call history that lead to this production call.
-	 * @returns {Element} Returns the element that was build out of the snippet using the given data.
+	 * @returns {Element} The element that was build from the snippet using the given data.
 	 */
 	this.produce = function (snippetKey, data = {}, _origin = "")
 	{
@@ -333,7 +332,7 @@ let pageSnippets = new function ()
 		 * @param {string} text String that may contain placeholders to be replaced.
 		 * @param {PageSnippetsProductionData} data Production data from whitch to insert values.
 		 * @param {Element} [sourceNode] The snippets source node that does contain the variables (for `number-format` and `date-format` attributes).
-		 * @returns {string} Returns the given string with placeholders replaced by values.
+		 * @returns {string} The given string with placeholders replaced by values.
 		 */
 		function _resolveVariables (text, data, sourceNode)
 		{
@@ -687,7 +686,7 @@ let pageSnippets = new function ()
 		 * @param {Element} sourceNode Source that defined the element that is currently build.
 		 * @param {Element} targetElement Currently processed target element.
 		 * @param {PageSnippetsProductionData} data Data provided to build the target element.
-		 * @param {string} origin Listing of source document nodes that lead to this function call.
+		 * @param {string} origin List of source document nodes that lead to this function call.
 		 * @returns {boolean} Result of the test expression validation.
 		 */
 		function __psIf (sourceNode, targetElement, data, origin)
