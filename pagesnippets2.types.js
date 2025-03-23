@@ -17,7 +17,7 @@
  * @property {Element} data XML source data of that snippet.
  *
  * @callback PageSnippetsProductionFunction
- * Function type used in production methods. This does not return any value but manipulate the `targetElement`object.
+ * Private function type used in production methods. This does not return any value but manipulate the `targetElement`object.
  * @param {Element} sourceNode Source that defined the element that is currently build.
  * @param {Element} targetElement Currently processed target element.
  * @param {PageSnippetsProductionData} data Data provided to build the target element.
