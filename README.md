@@ -15,13 +15,13 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
 ```xml
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <ps:pagesnippets xmlns:ps="https://github.com/chzager/pagesnippets">
-  <ps:snippet name="hello">
-    <h1>Hello world!</h1>
-  </ps:snippet>
+	<ps:snippet name="hello">
+		<h1>Hello world!</h1>
+	</ps:snippet>
 </ps:pagesnippets>
 ```
 
-2. Include `pageSnippets2.js` in your HTML file. (Note that the previous version 'pageSnippets.js' is deprecated and will be discontinued.)
+1. Include `pageSnippets2.js` (or the minfied version) in your HTML file.
 
 ```html
 <!DOCTYPE html>
@@ -29,20 +29,16 @@ This short example to gives you a glimpse how easy it is to use pageSnippets.
 	<head>
 		<title>pageSnippets Demo</title>
 		<meta charset="utf-8" />
-		<script src="https://chzager.github.io/pagesnippets/pagesnippets2.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/chzager/pagesnippets/pagesnippets2.min.js"></script>
 	</head>
+	<body></body>
 </html>
 ```
 
 3. Have a short script that imports the snippet file. Produce the snippet and place it in the document.
 
-```html
-  <body>
-    <script>
-      pageSnippets.import("snippet.xml").then(() => document.body.appendChild(pageSnippets.produce("hello")));
-    </script>
-  </body>
-</html>
+```javascript
+pageSnippets.import("snippet.xml").then(() => document.body.appendChild(pageSnippets.produce("hello")));
 ```
 
 You're done.
