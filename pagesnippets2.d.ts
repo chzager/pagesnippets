@@ -1,21 +1,11 @@
 /**
  * PageSnippets - dynamically load and produce HTML or XML.
- *
- * @link https://github.com/chzager/pagesnippets
- * @version 2.2
+ * @version 2.2.0
  * @copyright (c) 2023 Christoph Zager
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
+ * @link https://github.com/chzager/pagesnippets
  */
-interface pageSnippets {
-	/** PageSnippets XML scheme namespace URI. */
-	PS_NAMESPACE_URI: "https://github.com/chzager/pagesnippets";
-
-	/** HTML namespace URI. */
-	HTML_NAMESPACE_URI: "http://www.w3.org/1999/xhtml";
-
-	/** Map of all loaded snippets. */
-	snippets: Map<string, PageSnippetsMeta>;
-
+declare var pageSnippets: {
 	/**
 	 * The locale to be used when formatting numbers and dates in `<ps:text>` nodes.
 	 * Default: `"default"`.
@@ -23,13 +13,13 @@ interface pageSnippets {
 	locale: Intl.LocalesArgument;
 
 	/**
-	 * Imports a PageSnippet file.
+	 * Imports a PageSnippets file.
 	 *
 	 * This instantly adds the scripts and stylesheets referenced in the file to the current HTML document.
-	 * You need to call `pageSnippets.produce()` to get a snippet node that can be placed on the page.
+	 * You need to call {@linkcode pageSnippets.produce()} to get a snippet node that can be placed on the page.
 	 *
 	 * @param url URL of PageSnippets XML file to be loaded.
-	 * @returns A `Promise` tht resolves to `void` or rejects with an error.
+	 * @returns A `Promise` that resolves after the PageSnippet and all it's referenced files are loaded, or rejects with an error.
 	 */
 	import(url: string): Promise<void>;
 
@@ -70,7 +60,7 @@ interface pageSnippets {
 	 * @returns Paths of snippet groups within the requested group.
 	 */
 	getSnippetGroups(path?: string, recursive?: boolean): Array<string>;
-}
+};
 
 /** Data record that is used for producing a page snippet or any of a page snippets elements. */
 interface PageSnippetsProductionData {

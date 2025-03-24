@@ -1,12 +1,11 @@
 /**
  * PageSnippets - dynamically load and produce HTML or XML.
- *
- * @link https://github.com/chzager/pagesnippets
- * @version 2.2
+ * @version 2.2.0
  * @copyright (c) 2023 Christoph Zager
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
+ * @link https://github.com/chzager/pagesnippets
  */
-const pageSnippets = new function ()
+var pageSnippets = new function ()
 {
 	/**
 	 * PageSnippets XML scheme namespace URI.
@@ -84,10 +83,10 @@ const pageSnippets = new function ()
 	 * Imports a PageSnippet file.
 	 *
 	 * This instantly adds the scripts and stylesheets referenced in the file to the current HTML document.
-	 * You need to call `pageSnippets.produce()` to get a snippet node that can be placed on the page.
+	 * You need to call {@linkcode pageSnippets.produce()} to get a snippet node that can be placed on the page.
 	 *
 	 * @param {string} url URL of PageSnippets XML file to be loaded.
-	 * @returns {Promise<void>} A `Promise` tht resolves to `void` or rejects with an error.
+	 * @returns {Promise<void>} A `Promise` that resolves after the PageSnippet and all it's referenced files are loaded, or rejects with an error.
 	 */
 	this.import = function (url)
 	{
