@@ -5,7 +5,8 @@
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  * @link https://github.com/chzager/pagesnippets
  */
-declare var pageSnippets: {
+declare var pageSnippets: pageSnippets;
+interface pageSnippets {
 	/**
 	 * The locale to be used when formatting numbers and dates in `<ps:text>` nodes.
 	 * Default: `"default"`.
@@ -60,7 +61,7 @@ declare var pageSnippets: {
 	 * @returns Paths of snippet groups within the requested group.
 	 */
 	getSnippetGroups(path?: string, recursive?: boolean): Array<string>;
-};
+}
 
 /** Data record that is used for producing a page snippet or any of a page snippets elements. */
 interface PageSnippetsProductionData {
