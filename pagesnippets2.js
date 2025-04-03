@@ -348,7 +348,7 @@ var pageSnippets = new function ()
 					{
 						let decimalsFormat = /^\+?[^.]+/.exec(numberFormat)?.[0] ?? "0";
 						let fractionFormat = /\.(.*)$/.exec(numberFormat)?.[1] ?? "";
-						let minimumFractionDigits = Math.max(fractionFormat.replace(/[^0]/g, "").length, 1);
+						let minimumFractionDigits = Math.max(fractionFormat.replace(/[^0]/g, "").length, 0);
 						let numStr = value.toLocaleString(undefined, {
 							roundingPriority: "lessPrecision",
 							roundingMode: "trunc",
