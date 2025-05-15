@@ -20,9 +20,10 @@ interface pageSnippets {
 	 * You need to call {@linkcode pageSnippets.produce()} to get a snippet node that can be placed on the page.
 	 *
 	 * @param url URL of PageSnippets XML file to be loaded.
+	 * @param headers Custom headers to pass along with the request.
 	 * @returns A `Promise` that resolves after the PageSnippet and all it's referenced files are loaded, or rejects with an error.
 	 */
-	import(url: string): Promise<void>;
+	import(url: string, headers?: HeadersInit): Promise<void>;
 
 	/**
 	 * Produces an actual HTML- or XML-element from a page snippet.

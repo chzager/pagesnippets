@@ -86,9 +86,10 @@ var pageSnippets = new function ()
 	 * You need to call {@linkcode pageSnippets.produce()} to get a snippet node that can be placed on the page.
 	 *
 	 * @param {string} url URL of PageSnippets XML file to be loaded.
+	 * @param {HeadersInit} [headers] Custom headers to pass along with the request.
 	 * @returns {Promise<void>} A `Promise` that resolves after the PageSnippet and all it's referenced files are loaded, or rejects with an error.
 	 */
-	this.import = function (url)
+	this.import = function (url, headers)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -99,7 +100,7 @@ var pageSnippets = new function ()
 			}
 			else
 			{
-				fetch(url).then(
+				fetch(url, { headers: headers }).then(
 					(response) =>
 					{
 						//#region Private methods.
