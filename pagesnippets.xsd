@@ -60,6 +60,14 @@
 	<xsd:element name="if" type="ps:ctContentTest" />
 	<xsd:element name="insert-snippet">
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="param" minOccurs="0">
+					<xsd:complexType>
+						<xsd:attribute type="xsd:string" name="name" use="required"></xsd:attribute>
+						<xsd:attribute type="xsd:string" name="value" use="required"></xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
 			<xsd:attribute type="xsd:string" name="name" use="required" />
 		</xsd:complexType>
 	</xsd:element>

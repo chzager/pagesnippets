@@ -718,6 +718,17 @@ var pageSnippets = new function ()
 			let snippetPath = _normalizeSnippetKey(_resolveVariables(sourceNode.getAttributeNS(PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name"), data));
 			if (snippets.has(snippetPath))
 			{
+				for (const child of sourceNode.children)
+				{
+					if ((child.namespaceURI === PS_NAMESPACE_URI) && (child.localName === "param"))
+					{
+						data[child.getAttribute("name")] = _resolveVariables(child.getAttribute("value"), data);
+					}
+					else
+					{
+						console.warn("Element \"" + child.tagName + "\" is not allowed here.\n" + origin);
+					}
+				}
 				targetElement.appendChild(pageSnippets.produce(snippetPath, data, origin));
 			}
 			else
