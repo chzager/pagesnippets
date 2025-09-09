@@ -61,7 +61,7 @@
 	<xsd:element name="insert-snippet">
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element name="param" minOccurs="0">
+				<xsd:element name="param" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
 						<xsd:attribute type="xsd:string" name="name" use="required"></xsd:attribute>
 						<xsd:attribute type="xsd:string" name="value" use="required"></xsd:attribute>
