@@ -5,7 +5,7 @@
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  * @link https://github.com/chzager/pagesnippets
  */
-declare var pageSnippets: pageSnippets;
+declare const pageSnippets: pageSnippets;
 interface pageSnippets {
 	/**
 	 * The locale to be used when formatting numbers and dates in `<ps:text>` nodes.
@@ -70,11 +70,19 @@ interface PageSnippetsProductionData {
 }
 
 /**
- * Function type that is used as a callback in `ps:postproduction` attributes and `<ps:call-function>` nodes.
+ * Function type that is used as a callback in `ps:postproduction` attributes nodes.
  * @param element Currently processed target element.
  * @param data Data provided to build the target element.
  */
 type PageSnippetsProductionCallback = (element: Element, data: PageSnippetsProductionData) => void;
+
+/**
+ * Function type that is used as a callback in `<ps:call-function>` nodes.
+ * @param element Currently processed target element.
+ * @param data Data provided to build the target element.
+ * @param args Additional arguments given in the `<ps:argument>` child nodes.
+ */
+type PageSnippetsCallFunction = (element: Element, data: PageSnippetsProductionData, ...args: string[]) => void;
 
 /** A page snippets meta data. */
 interface PageSnippetsMeta {

@@ -5,7 +5,7 @@
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  * @link https://github.com/chzager/pagesnippets
  */
-var pageSnippets = new function ()
+const pageSnippets = new function ()
 {
 	/**
 	 * PageSnippets XML scheme namespace URI.
@@ -20,13 +20,13 @@ var pageSnippets = new function ()
 	/**
 	 * XML serializer used for getting opening tags when keeping track of a nodes origin/call history.
 	 */
-	let _xmlSerializer = new XMLSerializer();
+	const _xmlSerializer = new XMLSerializer();
 
 	/**
 	 * Map of all loaded snippets.
 	 * @type {Map<string, PageSnippetsMeta>}
 	 */
-	let snippets = new Map();
+	const snippets = new Map();
 
 	/**
 	 * From a snippet key or a path crumb array this retuns a normalized key string.
@@ -37,9 +37,9 @@ var pageSnippets = new function ()
 	 * normalizeSnippetKey(["foo", "bar"])
 	 * // returns "/foo/bar"
 	 */
-	function _normalizeSnippetKey (key, asPath = false)
+	function normalizeSnippetKey (key, asPath = false)
 	{
-		if (key.constructor === Array)
+		if (Array.isArray(key))
 		{
 			key = key.join("/");
 		}
@@ -53,9 +53,9 @@ var pageSnippets = new function ()
 	 * @param {string} origin List of source document nodes that lead to this node.
 	 * @returns {string} A list of source document nodes that lead to this node including this node reference.
 	 */
-	function _updateCallHistory (node, source, origin)
+	function updateCallHistory (node, source, origin)
 	{
-		let text = _xmlSerializer.serializeToString(node);
+		const text = _xmlSerializer.serializeToString(node);
 		return text.substring(0, text.indexOf(">") + 1)
 			+ "\t@" + source
 			+ "\n" + origin;
@@ -67,7 +67,7 @@ var pageSnippets = new function ()
 	 * @param {string} origin Call history string.
 	 * @returns {string}
 	 */
-	function _originToString (origin)
+	function originToString (origin)
 	{
 		return origin.replace(/\sxmlns(=|:[^=]+=)"[^"]+"/gi, "").trim();
 	}
@@ -93,15 +93,15 @@ var pageSnippets = new function ()
 	{
 		return new Promise((resolve, reject) =>
 		{
-			if (Array.from(snippets.values()).filter((v) => v.source === url).length > 0)
+			if (Array.from(snippets.values()).some(v => v.source === url))
 			{
-				console.debug("PageSnippet \"" + url + "\" is already imported.");
+				console.debug(`PageSnippet "${url}" is already imported.`);
 				resolve();
 			}
 			else
 			{
-				fetch(url, { headers: headers }).then(
-					(response) =>
+				fetch(url, { headers: headers })
+					.then(response =>
 					{
 						//#region Private methods.
 						/**
@@ -109,7 +109,7 @@ var pageSnippets = new function ()
 						 * @param {string} path Path to be normalized.
 						 * @returns {string} Returns the normalized path.
 						 */
-						function _normalizePath (path)
+						function normalizePath (path)
 						{
 							let result = "";
 							if (/^(http[s]?:\/\/|\/)/.test(path)) // Ignore absolute paths.
@@ -118,7 +118,7 @@ var pageSnippets = new function ()
 							}
 							else
 							{
-								let templateRoot = url.replace(/[^./]+\.[\S]+$/, ""); // Remove the file name from `url`, leaves the path only.
+								const templateRoot = url.replace(/[^./]+\.[\S]+$/, ""); // Remove the file name from `url`, leaves the path only.
 								path = path.replace(/^\.\//, ""); // Remove "./" at the beginning of `path`.
 								result = templateRoot.concat(path).replace(/[^/]+\/\.\.\//g, ""); // Resolve parent directories ("../").
 							}
@@ -127,8 +127,8 @@ var pageSnippets = new function ()
 
 						/**
 						 * Parses a PageSnippets node. Iterates through all `<ps:snippet>` and `<ps:snippet-group>` nodes.
-						 * Adds all referenced `<ps:stylesheet>`s to the HTML document via `_includeStypesheet()`.
-						 * Writes all `<ps:script>`s to the HTML document via `_includeScripts()` which does finally resolve the _import()_ promise
+						 * Adds all referenced `<ps:stylesheet>`s to the HTML document via `includeStypesheet()`.
+						 * Writes all `<ps:script>`s to the HTML document via `includeScripts()` which does finally resolve the _import()_ promise
 						 * after all scripts have been loaded.
 						 *
 						 * Warns to console if unexpected or disallowed elements are encountered.
@@ -136,27 +136,27 @@ var pageSnippets = new function ()
 						 * @param {Element} node PageSnippet XML node to be parsed.
 						 * @param {string} groupName _ps:snippet-group_ name where this node belongs to. Empty string if it is located at the root.
 						 */
-						function _parse (node, groupName, origin)
+						function parse (node, groupName, origin)
 						{
 							/** @type {Array<Element>} */
-							let scriptsCollection = [];
-							for (let childNode of node.children)
+							const scriptsCollection = [];
+							for (const childNode of node.children)
 							{
-								let location = _updateCallHistory(childNode, url, origin);
+								const location = updateCallHistory(childNode, url, origin);
 								if (childNode.namespaceURI === PS_NAMESPACE_URI)
 								{
 									if (childNode.localName === "snippet")
 									{
-										_appendSnippet(childNode, groupName, location);
+										appendSnippet(childNode, groupName, location);
 									}
 									else if (childNode.localName === "snippet-group")
 									{
-										let childGroupName = childNode.getAttribute("name");
-										_parse(childNode, groupName + "/" + childGroupName, location);
+										const childGroupName = childNode.getAttribute("name");
+										parse(childNode, groupName + "/" + childGroupName, location);
 									}
 									else if ((groupName === "") && (childNode.localName === "stylesheet"))
 									{
-										_includeStylesheet(childNode);
+										includeStylesheet(childNode);
 									}
 									else if ((groupName === "") && (childNode.localName === "script"))
 									{
@@ -164,17 +164,17 @@ var pageSnippets = new function ()
 									}
 									else
 									{
-										console.warn("Element not allowed here.\n" + _originToString(location));
+										console.warn("Element not allowed here.\n" + originToString(location));
 									}
 								}
 								else
 								{
-									console.warn("Unexpected element.\n" + _originToString(location));
+									console.warn("Unexpected element.\n" + originToString(location));
 								}
 							}
 							if (groupName === "")
 							{
-								_includeScripts(scriptsCollection); // This does finally resolve.
+								includeScripts(scriptsCollection); // This does finally resolve.
 							}
 						}
 
@@ -183,9 +183,9 @@ var pageSnippets = new function ()
 						 * @param {Element} node PageSnippets node to be added to the snippets collection.
 						 * @param {string} groupName _ps:snippet-group_ name where this node belongs to. Empty string if it is located at the root.
 						 */
-						function _appendSnippet (node, groupName, origin)
+						function appendSnippet (node, groupName, origin)
 						{
-							let snippetKey = groupName + "/" + node.getAttribute("name");
+							const snippetKey = groupName + "/" + node.getAttribute("name");
 							snippets.set(snippetKey, {
 								source: url,
 								key: snippetKey,
@@ -194,7 +194,7 @@ var pageSnippets = new function ()
 							});
 							if (node.childElementCount > 1)
 							{
-								console.warn("Only one child element allowed.\n" + _originToString(origin));
+								console.warn("Only one child element allowed.\n" + originToString(origin));
 							}
 						}
 
@@ -205,12 +205,12 @@ var pageSnippets = new function ()
 						 *
 						 * @param {Element} node `<ps:stylesheet>` node to be included.
 						 */
-						function _includeStylesheet (node)
+						function includeStylesheet (node)
 						{
-							let src = _normalizePath(node.getAttribute("src"));
+							const src = normalizePath(node.getAttribute("src"));
 							if (document.querySelector("link[rel=\"stylesheet\"][href=\"" + src + "\"]") === null)
 							{
-								let styleNode = document.createElement("link");
+								const styleNode = document.createElement("link");
 								styleNode.setAttribute("rel", "stylesheet");
 								styleNode.setAttribute("href", src);
 								document.head.appendChild(styleNode);
@@ -226,34 +226,34 @@ var pageSnippets = new function ()
 						 *
 						 * @param {Array<Element>} scriptsCollection Array of `<ps:script>` nodes from which to import scripts.
 						 */
-						function _includeScripts (scriptsCollection)
+						function includeScripts (scriptsCollection)
 						{
-							function __onScriptLoadend (loadEvent)
+							function onScriptLoadend (loadEvent)
 							{
 								if (loadEvent.type === "error")
 								{
-									console.error("Error while loading \"" + loadEvent.target.src + "\"\n" + _originToString(_updateCallHistory(loadEvent.target, url, "")));
+									console.error("Error while loading \"" + loadEvent.target.src + "\"\n" + originToString(updateCallHistory(loadEvent.target, url, "")));
 								}
 								else
 								{
-									_includeScripts(scriptsCollection.slice(1));
+									includeScripts(scriptsCollection.slice(1));
 								}
 							}
 							if (scriptsCollection.length > 0)
 							{
-								let scriptNode = scriptsCollection[0];
-								let src = _normalizePath(scriptNode.getAttribute("src"));
+								const scriptNode = scriptsCollection[0];
+								const src = normalizePath(scriptNode.getAttribute("src"));
 								if (document.querySelector("script[src=\"" + src + "\"]") === null)
 								{
-									let scriptNode = document.createElement("script");
-									scriptNode.addEventListener("load", __onScriptLoadend);
-									scriptNode.addEventListener("error", __onScriptLoadend);
+									const scriptNode = document.createElement("script");
+									scriptNode.addEventListener("load", onScriptLoadend);
+									scriptNode.addEventListener("error", onScriptLoadend);
 									scriptNode.setAttribute("src", src);
 									document.head.appendChild(scriptNode);
 								}
 								else
 								{
-									_includeScripts(scriptsCollection.slice(1));
+									includeScripts(scriptsCollection.slice(1));
 								}
 							}
 							else
@@ -264,41 +264,42 @@ var pageSnippets = new function ()
 						//#endregion
 						if (response.status === 200)
 						{
-							response.text().then((data) =>
-							{
-								/** @type {XMLDocument} */
-								let xmlDocument;
-								try
+							response.text()
+								.then(data =>
 								{
-									xmlDocument = new DOMParser().parseFromString(data, "text/xml");
-								}
-								finally
-								{
-									if ((xmlDocument.documentElement.namespaceURI === PS_NAMESPACE_URI) && (xmlDocument.documentElement.localName === "pagesnippets"))
+									/** @type {XMLDocument} */
+									let xmlDocument;
+									try
 									{
-										_parse(xmlDocument.firstElementChild, "", ""); // This does finally resolve.
+										xmlDocument = new DOMParser().parseFromString(data, "text/xml");
 									}
-									else
+									finally
 									{
-										let error = new Error("\"" + url + "\" is not a PageSnippets XML-document.");
-										console.error(error);
-										reject(error);
+										if ((xmlDocument.documentElement.namespaceURI === PS_NAMESPACE_URI) && (xmlDocument.documentElement.localName === "pagesnippets"))
+										{
+											parse(xmlDocument.firstElementChild, "", ""); // This does finally resolve.
+										}
+										else
+										{
+											const error = new Error(`"${url}" is not a PageSnippets XML-document.`);
+											console.error(error);
+											reject(error);
+										}
 									}
-								}
-							});
+								});
 						}
 						else
 						{
-							let error = new ReferenceError("Server returned " + response.status + " (" + response.statusText + ") when trying to fetch " + response.url);
+							const error = new ReferenceError(`Server returned ${response.status} (${response.statusText}) when trying to fetch ${response.url}`);
 							console.error(error);
 							reject(error);
 						}
 					},
-					(error) =>
-					{
-						console.log("FETCH ERROR");
-						reject(new Error(error));
-					});
+						(error) =>
+						{
+							console.log("FETCH ERROR");
+							reject(error);
+						});
 			}
 		});
 	};
@@ -314,13 +315,13 @@ var pageSnippets = new function ()
 	{
 		const NODETYPE_ELEMENT = 1;
 		const NODETYPE_TEXT = 3;
-		function _getObjectValueByPath (object, path, pathSeparator = ".")
+		function getObjectValueByPath (object, path, pathSeparator = ".")
 		{
 			let result = undefined;
 			if (!!object && !!path)
 			{
-				let steps = path.split(pathSeparator);
-				result = (steps.length === 1) ? object[steps[0]] : _getObjectValueByPath(object[steps[0]], steps.splice(1).join(pathSeparator), pathSeparator);
+				const steps = path.split(pathSeparator);
+				result = (steps.length === 1) ? object[steps[0]] : getObjectValueByPath(object[steps[0]], steps.splice(1).join(pathSeparator), pathSeparator);
 			}
 			return result;
 		}
@@ -334,23 +335,21 @@ var pageSnippets = new function ()
 		 * @param {Element} [sourceNode] The snippets source node that does contain the variables (for `number-format` and `date-format` attributes).
 		 * @returns {string} The given string with placeholders replaced by values.
 		 */
-		function _resolveVariables (text, data, sourceNode)
-		{
+		function resolveVariables (text, data, sourceNode)
+		{ // TODO: refine
 			let result = text;
-			let rex = /\{\{(.*?)\}\}/g;
-			let rexResult = rex.exec(text);
-			while (!!rexResult)
+			for (const [str, key] of text.matchAll(/\{\{(.*?)\}\}/g))
 			{
-				let value = _getObjectValueByPath(data, rexResult[1]) ?? "";
+				const value = getObjectValueByPath(data, key) ?? "";
 				if (typeof value === "number")
 				{
-					let numberFormat = sourceNode?.attributes.getNamedItem("number-format")?.value;
+					const numberFormat = sourceNode?.attributes.getNamedItem("number-format")?.value;
 					if (!!numberFormat)
 					{
-						let decimalsFormat = /^\+?[^.]+/.exec(numberFormat)?.[0] ?? "0";
-						let fractionFormat = /\.(.*)$/.exec(numberFormat)?.[1] ?? "";
-						let minimumFractionDigits = Math.max(fractionFormat.replace(/[^0]/g, "").length, 0);
-						let numStr = value.toLocaleString(undefined, {
+						const decimalsFormat = /^\+?[^.]+/.exec(numberFormat)?.[0] ?? "0";
+						const fractionFormat = /\.(.*)$/.exec(numberFormat)?.[1] ?? "";
+						const minimumFractionDigits = Math.max(fractionFormat.replace(/[^0]/g, "").length, 0);
+						const numStr = value.toLocaleString(undefined, {
 							roundingPriority: "lessPrecision",
 							roundingMode: "trunc",
 							useGrouping: numberFormat.includes(","),
@@ -360,11 +359,11 @@ var pageSnippets = new function ()
 							minimumFractionDigits: minimumFractionDigits,
 							maximumFractionDigits: Math.max(fractionFormat.length, minimumFractionDigits)
 						});
-						result = result.replace(rexResult[0], numStr);
+						result = result.replace(str, numStr);
 					}
 					else
 					{
-						result = result.replace(rexResult[0], value.toString());
+						result = result.replace(str, value.toString());
 					}
 				}
 				else if (value instanceof Date)
@@ -372,10 +371,10 @@ var pageSnippets = new function ()
 					let dateStr = sourceNode?.attributes.getNamedItem("date-format")?.value;
 					if (!!dateStr)
 					{
-						for (let regxMatch of dateStr.matchAll(/D{1,4}|d{1,2}|M{1,4}|m{1,2}|y{4}|y{2}|h{1,2}|n{2}|s{2}/g))
+						for (const [regxMatch] of dateStr.matchAll(/D{1,4}|d{1,2}|M{1,4}|m{1,2}|y{4}|y{2}|h{1,2}|n{2}|s{2}/g))
 						{
-							let tag = regxMatch[0];
-							let numChars = tag.length;
+							const tag = regxMatch;
+							const numChars = tag.length;
 							let val = "";
 							switch (tag)
 							{
@@ -428,18 +427,17 @@ var pageSnippets = new function ()
 							}
 							dateStr = dateStr.replace(tag, val.padStart(numChars, "0"));
 						}
-						result = result.replace(rexResult[0], dateStr);
+						result = result.replace(str, dateStr);
 					}
 					else
 					{
-						result = result.replace(rexResult[0], value.toJSON());
+						result = result.replace(str, value.toJSON());
 					}
 				}
 				else
 				{
-					result = result.replace(rexResult[0], value.toString());
+					result = result.replace(str, value.toString());
 				}
-				rexResult = rex.exec(text);
 			}
 			return result;
 		}
@@ -448,56 +446,56 @@ var pageSnippets = new function ()
 		 * Processes the source node to build the content of the target element.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function _processNode (sourceNode, targetElement, data, origin)
+		function processNode (sourceNode, targetElement, data, origin)
 		{
-			for (let childSourceNode of sourceNode.childNodes)
+			for (const childSourceNode of sourceNode.childNodes)
 			{
 				switch (childSourceNode.nodeType)
 				{
 					case NODETYPE_ELEMENT:
-						let location = _updateCallHistory(childSourceNode, currentSnippetSource, origin);
+						const location = updateCallHistory(childSourceNode, currentSnippetSource, origin);
 						if (childSourceNode.namespaceURI === PS_NAMESPACE_URI)
 						{
 							switch (childSourceNode.localName)
 							{
 								case "call-function":
-									__psCallFunction(childSourceNode, targetElement, data, location);
+									psCallFunction(childSourceNode, targetElement, data, location);
 									break;
 								case "choose":
-									__psChoose(childSourceNode, targetElement, data, location);
+									psChoose(childSourceNode, targetElement, data, location);
 									break;
 								case "for-each":
-									__psForEach(childSourceNode, targetElement, data, location);
+									psForEach(childSourceNode, targetElement, data, location);
 									break;
 								case "for-empty":
-									__psForEmpty(childSourceNode, targetElement, data, location);
+									psForEmpty(childSourceNode, targetElement, data, location);
 									break;
 								case "if":
-									__psIf(childSourceNode, targetElement, data, location);
+									psIf(childSourceNode, targetElement, data, location);
 									break;
 								case "insert-snippet":
-									__psInsertSnippet(childSourceNode, targetElement, data, location);
+									psInsertSnippet(childSourceNode, targetElement, data, location);
 									break;
 								case "text":
-									targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode.firstChild.data, data, childSourceNode)));
+									targetElement.appendChild(document.createTextNode(resolveVariables(childSourceNode.firstChild.data, data, childSourceNode)));
 									break;
 								default:
-									console.warn("Element not allowed here.\n" + _originToString(location));
+									console.warn("Element not allowed here.\n" + originToString(location));
 							}
 						}
 						else
 						{
-							let element = document.createElementNS(childSourceNode.namespaceURI || HTML_NAMESPACE_URI, childSourceNode.tagName);
-							_addAttributes(childSourceNode, element, data, location);
-							_processNode(childSourceNode, element, data, location);
-							__psPostProduction(childSourceNode, element, data, location);
+							const element = document.createElementNS(childSourceNode.namespaceURI || HTML_NAMESPACE_URI, childSourceNode.tagName);
+							addAttributes(childSourceNode, element, data, location);
+							processNode(childSourceNode, element, data, location);
+							psPostProduction(childSourceNode, element, data, location);
 							targetElement.appendChild(element);
 						}
 						break;
 					case NODETYPE_TEXT:
 						if (/^\s*$/.test(childSourceNode.textContent) === false)
 						{
-							targetElement.appendChild(document.createTextNode(_resolveVariables(childSourceNode.textContent, data, childSourceNode.parentElement)));
+							targetElement.appendChild(document.createTextNode(resolveVariables(childSourceNode.textContent, data, childSourceNode.parentElement)));
 						}
 						break;
 				}
@@ -509,32 +507,33 @@ var pageSnippets = new function ()
 		 * actions if they are PageSnippets attributes.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function _addAttributes (sourceNode, targetElement, data, origin)
+		function addAttributes (sourceNode, targetElement, data, origin)
 		{
-			for (let attribute of sourceNode.attributes)
+			for (const attribute of sourceNode.attributes)
 			{
 				if (attribute.namespaceURI === PS_NAMESPACE_URI)
 				{
 					if (/^on\S+/.test(attribute.localName))
 					{
-						let referencedFunction = _getObjectValueByPath(data, attribute.value);
+						const referencedFunction = getObjectValueByPath(data, attribute.value);
 						if (typeof referencedFunction === "function")
 						{
 							targetElement[attribute.localName] = referencedFunction;
 						}
 						else
 						{
-							console.warn("Event handler \"" + attribute.value + "\" is not a function.\n" + _originToString(origin));
+							console.warn(`Event handler "${attribute.value}" is not a function.\n` + originToString(origin));
 						}
 					}
-					else if (attribute.localName !== "postproduction")
+					else if (!["postproduction"].includes(attribute.localName))
 					{
-						console.warn("Attribute \"" + attribute.name + "\" is not allowed here.\n" + _originToString(origin));
+						console.trace();
+						console.warn(`Attribute "${attribute.name}" is not allowed here.\n` + originToString(origin));
 					}
 				}
 				else
 				{
-					targetElement.setAttributeNS(attribute.namespaceURI, attribute.localName, _resolveVariables(attribute.value, data));
+					targetElement.setAttributeNS(attribute.namespaceURI, attribute.localName, resolveVariables(attribute.value, data));
 				}
 			}
 		}
@@ -548,20 +547,20 @@ var pageSnippets = new function ()
 		 * Throws a `ReferenceError` if the referenced object is not a function.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function __psPostProduction (sourceNode, targetElement, data, origin)
+		function psPostProduction (sourceNode, targetElement, data, origin)
 		{
-			let postProductionFunction = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "postproduction");
+			const postProductionFunction = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "postproduction");
 			if (postProductionFunction)
 			{
 				targetElement.removeAttributeNS(PS_NAMESPACE_URI, "postproduction");
-				let referencedFunction = _getObjectValueByPath(data, postProductionFunction);
+				const referencedFunction = getObjectValueByPath(data, postProductionFunction);
 				if (typeof referencedFunction === "function")
 				{
 					referencedFunction(targetElement, data);
 				}
 				else
 				{
-					throw new ReferenceError("Post-production reference \"" + postProductionFunction + "\" is not a function.\n" + _originToString(origin));
+					throw new ReferenceError(`Post-production reference "${postProductionFunction}" is not a function.\n` + originToString(origin));
 				}
 			}
 		}
@@ -573,16 +572,28 @@ var pageSnippets = new function ()
 		 * Throws a `ReferenceError` if the referenced object is not a function.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function __psCallFunction (sourceNode, targetElement, data, origin)
+		function psCallFunction (sourceNode, targetElement, data, origin)
 		{
-			let functionName = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name");
+			const functionName = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name");
 			if (typeof data[functionName] === "function")
 			{
-				data[functionName](targetElement, data);
+				const args = [];
+				for (const child of sourceNode.children)
+				{
+					if ((child.namespaceURI === PS_NAMESPACE_URI) && (child.localName === "argument"))
+					{
+						args.push(resolveVariables(child.textContent, data));
+					}
+					else
+					{
+						console.warn(`Element "${child.tagName}" is not allowed here.\n` + origin);
+					}
+				}
+				data[functionName](targetElement, data, ...args);
 			}
 			else
 			{
-				throw new ReferenceError("Reference to call \"" + functionName + "\" is not a function.\n" + _originToString(origin));
+				throw new ReferenceError(`Reference to call "${functionName}" is not a function.\n` + originToString(origin));
 			}
 		}
 
@@ -591,32 +602,53 @@ var pageSnippets = new function ()
 		 * Iterates through the items of the array given in the _list_ attribute
 		 * and for each item the child nodes are being processed.
 		 *
-		 * The array items get the properties `_position` (index of the item within the array, starting by 1)
-		 * and `_count` (the array length).
+		 * The array items get the properties `_index`, `_position` (index of the item within the array, starting by 1) and `_count` (the array length).
 		 *
-		 * If the array item is a string, number or boolean, it is converted to an object
-		 * with the original value stored in the `_value` property.
+		 * If the array item is a primitive type (string, number or boolean), it is converted to an object with the original value stored
+		 * in the `_value` property.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function __psForEach (sourceNode, targetElement, data, origin)
+		function psForEach (sourceNode, targetElement, data, origin)
 		{
-			let listKey = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
-			let list = _getObjectValueByPath(data, listKey);
-			if (list?.constructor === Array)
+			function ObjectAssignEx (target, ...sources)
 			{
-				let position = 0;
-				let itemsCount = list.length;
-				for (let listItem of list)
+				for (const source of sources)
 				{
-					let dataItem = ((["string", "number", "boolean"].includes(typeof listItem)) || (listItem.constructor === Array)) ? { "_value": listItem } : Object.assign({}, listItem);
-					dataItem._position = position += 1;
-					dataItem._count = itemsCount;
-					_processNode(sourceNode, targetElement, Object.assign({}, data, dataItem), origin);
+					Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+					const proto = Object.getPrototypeOf(source);
+					if (proto && (proto !== Object.prototype))
+					{
+						for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(proto)))
+						{
+							if (("get" in descriptor) || ("set" in descriptor))
+							{
+								Object.defineProperty(target, key, descriptor);
+							}
+						}
+					}
+				}
+				return target;
+			}
+			const listKey = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
+			const list = getObjectValueByPath(data, listKey);
+			if (Array.isArray(list))
+			{
+				let index = 0;
+				const itemsCount = list.length;
+				for (const listItem of list)
+				{
+					const dataItem = (["string", "number", "boolean"].includes(typeof listItem) || Array.isArray(listItem)) ? { _value: listItem } : listItem;
+					processNode(sourceNode, targetElement, ObjectAssignEx({}, data, dataItem, {
+						_index: index,
+						_position: index + 1,
+						_count: itemsCount,
+					}), origin);
+					index += 1;
 				}
 			}
 			else
 			{
-				throw new TypeError("\"" + listKey + "\" is " + (list?.constructor.name ?? "undefined") + ", expected Array.\n" + _originToString(origin));
+				throw new TypeError(`"${listKey}" is ${(list?.constructor.name ?? "undefined")}, expected Array.\n` + originToString(origin));
 			}
 		}
 
@@ -626,13 +658,13 @@ var pageSnippets = new function ()
 		 * the child nodes are being processed.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function __psForEmpty (sourceNode, targetElement, data, origin)
+		function psForEmpty (sourceNode, targetElement, data, origin)
 		{
-			let listKey = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
-			let list = _getObjectValueByPath(data, listKey);
-			if ((list?.constructor !== Array) || (list.length === 0))
+			const listKey = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
+			const list = getObjectValueByPath(data, listKey);
+			if (Array.isArray(list) || (list.length === 0))
 			{
-				_processNode(sourceNode, targetElement, data, origin);
+				processNode(sourceNode, targetElement, data, origin);
 			}
 		}
 
@@ -640,23 +672,23 @@ var pageSnippets = new function ()
 		 * Handles `<ps:choose>` nodes.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function __psChoose (sourceNode, targetElement, data, origin)
+		function psChoose (sourceNode, targetElement, data, origin)
 		{
 			const CHOOSE_MODE_STRICT = "strict";
 			const CHOOSE_MODE_LAX = "lax";
 			let chooseMode = (RegExp("^" + CHOOSE_MODE_STRICT + "$|^" + CHOOSE_MODE_LAX + "$").exec((sourceNode.getAttribute("mode") || CHOOSE_MODE_STRICT)) || [""])[0];
 			if (chooseMode === "")
 			{
-				console.warn("Invalid choose-mode \"" + sourceNode.getAttribute("mode") + "\", using \"strict\".\n" + _originToString(origin));
+				console.warn(`Invalid choose-mode "${sourceNode.getAttribute("mode")}", using "strict".\n` + originToString(origin));
 				chooseMode = CHOOSE_MODE_STRICT;
 			}
 			let anyMatch = false;
-			for (let childSourceNode of sourceNode.children)
+			for (const childSourceNode of sourceNode.children)
 			{
-				let location = _updateCallHistory(childSourceNode, currentSnippetSource, origin);
+				const location = updateCallHistory(childSourceNode, currentSnippetSource, origin);
 				if ((childSourceNode.namespaceURI === PS_NAMESPACE_URI) && (childSourceNode.localName === "if"))
 				{
-					let thisMatch = __psIf(childSourceNode, targetElement, data, location);
+					const thisMatch = psIf(childSourceNode, targetElement, data, location);
 					anyMatch = anyMatch || thisMatch;
 					if (anyMatch && (chooseMode === CHOOSE_MODE_STRICT))
 					{
@@ -667,12 +699,12 @@ var pageSnippets = new function ()
 				{
 					if (anyMatch === false)
 					{
-						_processNode(childSourceNode, targetElement, data, location);
+						processNode(childSourceNode, targetElement, data, location);
 					}
 				}
 				else
 				{
-					console.warn("Element not allowed here.\n" + _originToString(location));
+					console.warn("Element not allowed here.\n" + originToString(location));
 				}
 			}
 		}
@@ -689,10 +721,10 @@ var pageSnippets = new function ()
 		 * @param {string} origin List of source document nodes that lead to this function call.
 		 * @returns {boolean} Result of the test expression validation.
 		 */
-		function __psIf (sourceNode, targetElement, data, origin)
+		function psIf (sourceNode, targetElement, data, origin)
 		{
-			let testExpression = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "test") || sourceNode.getAttribute("test");
-			let functionBody = "return (" + testExpression.replace(/'?\{\{/g, "this.").replace(/\}\}'?/g, "") + ")";
+			const testExpression = sourceNode.getAttributeNS(PS_NAMESPACE_URI, "test") || sourceNode.getAttribute("test");
+			const functionBody = "return (" + testExpression.replace(/'?\{\{/g, "this.").replace(/\}\}'?/g, "") + ")";
 			let testResult;
 			try
 			{
@@ -700,11 +732,11 @@ var pageSnippets = new function ()
 			}
 			catch (err)
 			{
-				throw new err.constructor("Cannot evaluate expression \"" + testExpression + "\": " + err.message + ".\n" + _originToString(origin));
+				throw new err.constructor(`Cannot evaluate expression "${testExpression}": ${err.message}.\n` + originToString(origin));
 			};
 			if (testResult === true)
 			{
-				_processNode(sourceNode, targetElement, data, origin);
+				processNode(sourceNode, targetElement, data, origin);
 			}
 			return testResult;
 		}
@@ -713,27 +745,27 @@ var pageSnippets = new function ()
 		 * Handles `<ps:insert-snippet>` nodes. This calls `produce()` and insert the production result at the tags location.
 		 * @type {PageSnippetsProductionFunction}
 		 */
-		function __psInsertSnippet (sourceNode, targetElement, data, origin)
+		function psInsertSnippet (sourceNode, targetElement, data, origin)
 		{
-			let snippetPath = _normalizeSnippetKey(_resolveVariables(sourceNode.getAttributeNS(PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name"), data));
+			const snippetPath = normalizeSnippetKey(resolveVariables(sourceNode.getAttributeNS(PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name"), data));
 			if (snippets.has(snippetPath))
 			{
 				for (const child of sourceNode.children)
 				{
 					if ((child.namespaceURI === PS_NAMESPACE_URI) && (child.localName === "param"))
 					{
-						data[child.getAttribute("name")] = _resolveVariables(child.getAttribute("value"), data);
+						data[child.getAttribute("name")] = resolveVariables(child.getAttribute("value"), data);
 					}
 					else
 					{
-						console.warn("Element \"" + child.tagName + "\" is not allowed here.\n" + origin);
+						console.warn(`Element "${child.tagName}" is not allowed here.\n` + origin);
 					}
 				}
 				targetElement.appendChild(pageSnippets.produce(snippetPath, data, origin));
 			}
 			else
 			{
-				throw new ReferenceError("Unknown snippet \"" + snippetPath + "\".\n" + _originToString(origin));
+				throw new ReferenceError(`Unknown snippet "${snippetPath}".\n` + originToString(origin));
 			}
 		}
 		// #endregion
@@ -743,20 +775,20 @@ var pageSnippets = new function ()
 			throw new TypeError("Prohibited usage of _parentSnippetRef");
 		}
 		let currentSnippetSource;
-		snippetKey = _normalizeSnippetKey(snippetKey);
+		snippetKey = normalizeSnippetKey(snippetKey);
 		if (this.getSnippet(snippetKey))
 		{
-			let snippet = snippets.get(snippetKey);
+			const snippet = snippets.get(snippetKey);
 			if (_origin.includes(snippet.source + ":" + snippetKey))
 			{
-				throw new Error("Recursive snippet nesting.\n" + _originToString(_origin));
+				throw new Error("Recursive snippet nesting.\n" + originToString(_origin));
 			}
-			let origin = _updateCallHistory(snippet.data, snippet.source + ":" + snippetKey, _origin);
-			let result = document.createElementNS(snippet.namespace, snippet.data.localName);
+			const origin = updateCallHistory(snippet.data, snippet.source + ":" + snippetKey, _origin);
+			const result = document.createElementNS(snippet.namespace, snippet.data.localName);
 			currentSnippetSource = snippet.source + ":" + snippetKey;
-			_addAttributes(snippet.data, result, data, origin);
-			_processNode(snippet.data, result, data, origin);
-			__psPostProduction(snippet.data, result, data, origin);
+			addAttributes(snippet.data, result, data, origin);
+			processNode(snippet.data, result, data, origin);
+			psPostProduction(snippet.data, result, data, origin);
 			return result;
 		}
 	};
@@ -780,11 +812,11 @@ var pageSnippets = new function ()
 	{
 		if (snippets.has(snippetKey))
 		{
-			return snippets.get(_normalizeSnippetKey(snippetKey));
+			return snippets.get(normalizeSnippetKey(snippetKey));
 		}
 		else
 		{
-			throw new ReferenceError("No such snippet: \"" + snippetKey + "\".");
+			throw new ReferenceError(`No such snippet: "${snippetKey}".`);
 		}
 	};
 
@@ -796,15 +828,14 @@ var pageSnippets = new function ()
 	 */
 	this.getSnippets = function (path = "", recursive = false)
 	{
-		let result = [];
-		let filterRex = new RegExp("^(" + _normalizeSnippetKey(path, true) + "[^/]+)$");
-		path = _normalizeSnippetKey(path, true);
-		result = result.concat(Array.from(snippets.keys()).filter((v) => filterRex.test(v)));
-		if (recursive === true)
+		path = normalizeSnippetKey(path, true);
+		const filterRex = new RegExp("^(" + normalizeSnippetKey(path, true) + "[^/]+)$");
+		const result = Array.from(snippets.keys()).filter(v => filterRex.test(v));
+		if (recursive)
 		{
-			for (let subgroup of this.getSnippetGroups(path))
+			for (const subgroup of this.getSnippetGroups(path))
 			{
-				result = result.concat(this.getSnippets(subgroup, true));
+				result.push(...this.getSnippets(subgroup, true));
 			}
 		}
 		return result;
@@ -818,11 +849,11 @@ var pageSnippets = new function ()
 	 */
 	this.getSnippetGroups = function (path = "", recursive = false)
 	{
-		let filterRex = new RegExp("^(" + _normalizeSnippetKey(path, true) + "[^/]+/)");
-		let resultSet = new Set();
+		const filterRex = new RegExp("^(" + normalizeSnippetKey(path, true) + "[^/]+/)");
+		const resultSet = new Set();
 		for (let key of snippets.keys())
 		{
-			let rm = filterRex.exec(key);
+			const rm = filterRex.exec(key);
 			if (rm)
 			{
 				if (resultSet.has(rm[1]) === false)
@@ -830,7 +861,7 @@ var pageSnippets = new function ()
 					resultSet.add(rm[1]);
 					if (recursive === true)
 					{
-						this.getSnippetGroups(rm[1], recursive).forEach((v) => resultSet.add(v));
+						this.getSnippetGroups(rm[1], recursive).forEach(v => resultSet.add(v));
 					}
 				}
 			}

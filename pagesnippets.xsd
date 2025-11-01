@@ -37,6 +37,15 @@
 	</xsd:element>
 	<xsd:element name="call-function">
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="argument" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:simpleContent>
+							<xsd:extension base="xsd:string" />
+						</xsd:simpleContent>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
 			<xsd:attribute type="xsd:string" name="name" use="required" />
 		</xsd:complexType>
 	</xsd:element>
