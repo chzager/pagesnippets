@@ -315,6 +315,13 @@ const pageSnippets = new function ()
 	{
 		const NODETYPE_ELEMENT = 1;
 		const NODETYPE_TEXT = 3;
+
+		/** Some attributes need to be set as the element object's property. This is the list of affected tags and attributes. */
+		const PROPERTY_ATTRIBUTES = new Map(Object.entries({
+			"INPUT": ["value"],
+			"SELECT": ["value"],
+		}));
+
 		function getObjectValueByPath (object, path, pathSeparator = ".")
 		{
 			let result = undefined;
@@ -490,6 +497,15 @@ const pageSnippets = new function ()
 							processNode(childSourceNode, element, data, location);
 							psPostProduction(childSourceNode, element, data, location);
 							targetElement.appendChild(element);
+							const propertyAttributes = PROPERTY_ATTRIBUTES.get(element.tagName);
+							for (const propertyAttribute of propertyAttributes ?? [])
+							{
+								if (element.hasAttribute(propertyAttribute))
+								{
+									element[propertyAttribute] = element.getAttribute(propertyAttribute);
+									element.removeAttribute(propertyAttribute);
+								}
+							}
 						}
 						break;
 					case NODETYPE_TEXT:
