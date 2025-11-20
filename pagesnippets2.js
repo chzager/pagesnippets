@@ -598,6 +598,17 @@ const pageSnippets = new function ()
 				{
 					if ((child.namespaceURI === PS_NAMESPACE_URI) && (child.localName === "argument"))
 					{
+						for (const attribute of child.attributes)
+						{
+							if ((attribute.namespaceURI ?? sourceNode.namespaceURI === PS_NAMESPACE_URI) && (attribute.localName === "value"))
+							{
+								args.push(resolveVariables(attribute.value, data));
+							}
+							else
+							{
+								console.warn(`Attribute "${attribute.tagName}" is not allowed here.\n` + origin);
+							}
+						}
 						args.push(resolveVariables(child.textContent, data));
 					}
 					else

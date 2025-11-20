@@ -40,9 +40,7 @@
 			<xsd:sequence>
 				<xsd:element name="argument" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
-						<xsd:simpleContent>
-							<xsd:extension base="xsd:string" />
-						</xsd:simpleContent>
+						<xsd:attribute type="xsd:string" name="value" use="required" />
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
