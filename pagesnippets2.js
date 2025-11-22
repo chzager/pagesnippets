@@ -145,31 +145,22 @@ const pageSnippets = new function ()
 								const location = updateCallHistory(childNode, url, origin);
 								if (childNode.namespaceURI === PS_NAMESPACE_URI)
 								{
-									if (childNode.localName === "snippet")
+									switch (childNode.localName)
 									{
-										appendSnippet(childNode, groupName, location);
+										case "snippet":
+											appendSnippet(childNode, groupName, location);
+											break;
+										case "snippet-group":
+											const childGroupName = childNode.getAttribute("name");
+											parse(childNode, groupName + "/" + childGroupName, location);
+											break;
+										case "stylesheet":
+											includeStylesheet(childNode);
+											break;
+										case "script":
+											scriptsCollection.push(childNode);
+											break;
 									}
-									else if (childNode.localName === "snippet-group")
-									{
-										const childGroupName = childNode.getAttribute("name");
-										parse(childNode, groupName + "/" + childGroupName, location);
-									}
-									else if ((groupName === "") && (childNode.localName === "stylesheet"))
-									{
-										includeStylesheet(childNode);
-									}
-									else if ((groupName === "") && (childNode.localName === "script"))
-									{
-										scriptsCollection.push(childNode);
-									}
-									else
-									{
-										console.warn("Element not allowed here.\n" + originToString(location));
-									}
-								}
-								else
-								{
-									console.warn("Unexpected element.\n" + originToString(location));
 								}
 							}
 							if (groupName === "")
@@ -192,10 +183,6 @@ const pageSnippets = new function ()
 								namespace: node.firstElementChild.namespaceURI || HTML_NAMESPACE_URI,
 								data: node.firstElementChild
 							});
-							if (node.childElementCount > 1)
-							{
-								console.warn("Only one child element allowed.\n" + originToString(origin));
-							}
 						}
 
 						/**
@@ -343,7 +330,7 @@ const pageSnippets = new function ()
 		 * @returns {string} The given string with placeholders replaced by values.
 		 */
 		function resolveVariables (text, data, sourceNode)
-		{ // TODO: refine
+		{
 			let result = text;
 			for (const [str, key] of text.matchAll(/\{\{(.*?)\}\}/g))
 			{
@@ -529,7 +516,7 @@ const pageSnippets = new function ()
 			{
 				if (attribute.namespaceURI === PS_NAMESPACE_URI)
 				{
-					if (/^on\S+/.test(attribute.localName))
+					if (attribute.localName.startsWith("on"))
 					{
 						const referencedFunction = getObjectValueByPath(data, attribute.value);
 						if (typeof referencedFunction === "function")
@@ -540,11 +527,6 @@ const pageSnippets = new function ()
 						{
 							console.warn(`Event handler "${attribute.value}" is not a function.\n` + originToString(origin));
 						}
-					}
-					else if (!["postproduction"].includes(attribute.localName))
-					{
-						console.trace();
-						console.warn(`Attribute "${attribute.name}" is not allowed here.\n` + originToString(origin));
 					}
 				}
 				else
@@ -598,22 +580,7 @@ const pageSnippets = new function ()
 				{
 					if ((child.namespaceURI === PS_NAMESPACE_URI) && (child.localName === "argument"))
 					{
-						for (const attribute of child.attributes)
-						{
-							if ((attribute.namespaceURI ?? sourceNode.namespaceURI === PS_NAMESPACE_URI) && (attribute.localName === "value"))
-							{
-								args.push(resolveVariables(attribute.value, data));
-							}
-							else
-							{
-								console.warn(`Attribute "${attribute.tagName}" is not allowed here.\n` + origin);
-							}
-						}
-						args.push(resolveVariables(child.textContent, data));
-					}
-					else
-					{
-						console.warn(`Element "${child.tagName}" is not allowed here.\n` + origin);
+						args.push(resolveVariables(child.getAttribute("value"), data));
 					}
 				}
 				data[functionName](targetElement, data, ...args);
@@ -729,10 +696,6 @@ const pageSnippets = new function ()
 						processNode(childSourceNode, targetElement, data, location);
 					}
 				}
-				else
-				{
-					console.warn("Element not allowed here.\n" + originToString(location));
-				}
 			}
 		}
 
@@ -782,10 +745,6 @@ const pageSnippets = new function ()
 					if ((child.namespaceURI === PS_NAMESPACE_URI) && (child.localName === "param"))
 					{
 						data[child.getAttribute("name")] = resolveVariables(child.getAttribute("value"), data);
-					}
-					else
-					{
-						console.warn(`Element "${child.tagName}" is not allowed here.\n` + origin);
 					}
 				}
 				targetElement.appendChild(pageSnippets.produce(snippetPath, data, origin));
