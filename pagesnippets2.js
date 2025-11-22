@@ -1,6 +1,6 @@
 /**
  * PageSnippets - dynamically load and produce HTML or XML.
- * @version 2.2.2
+ * @version 2.3.0
  * @copyright (c) 2023 Christoph Zager
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  * @link https://github.com/chzager/pagesnippets
