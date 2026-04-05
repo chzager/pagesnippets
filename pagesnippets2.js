@@ -118,7 +118,7 @@ const pageSnippets = new function ()
 							}
 							else
 							{
-								const templateRoot = url.replace(/[^./]+\.[\S]+$/, ""); // Remove the file name from `url`, leaves the path only.
+								const templateRoot = url.substring(0, url.lastIndexOf("\/") + 1); // Remove the file name from `url`, leaves the path only.
 								path = path.replace(/^\.\//, ""); // Remove "./" at the beginning of `path`.
 								result = templateRoot.concat(path).replace(/[^/]+\/\.\.\//g, ""); // Resolve parent directories ("../").
 							}
