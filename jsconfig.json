@@ -1,10 +1,9 @@
 {
 	"compilerOptions": {
-		"module": "es2022",
-		"target": "es2022",
+		"target": "ES2022",
 		"lib": [
-			"DOM",
 			"ES2022",
+			"DOM",
 			"DOM.Iterable"
 		]
 	},
@@ -12,6 +11,6 @@
 		"*.js"
 	],
 	"exclude": [
-		"*.ts"
+		"*.min.*"
 	]
 }
