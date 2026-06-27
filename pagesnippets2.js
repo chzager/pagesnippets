@@ -349,6 +349,12 @@ const pageSnippets = new class pageSnippets
 		 * @type {{[tag: string]: PsProductionFunction}}
 		 */
 		const psTagProcessors = {
+			"attribute": (sourceNode, targetElement, data, trace) =>
+			{
+				const helper = document.createElement("div");
+				processNode(sourceNode.firstElementChild, helper, data, trace);
+				targetElement.setAttribute(sourceNode.attributes.getNamedItem("name").value, helper.textContent);
+			},
 			"choose": (sourceNode, targetElement, data, trace) =>
 			{
 				const CHOOSE_MODE_STRICT = "strict";
