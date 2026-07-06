@@ -6,17 +6,17 @@
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  * @link https://github.com/chzager/pagesnippets
  */
-const pageSnippets = new class pageSnippets
+const pageSnippets = new class
 {
 	/**
 	 * PageSnippets XML scheme namespace URI.
 	 */
-	static PS_NAMESPACE_URI = "https://github.com/chzager/pagesnippets";
+	PS_NAMESPACE_URI = "https://github.com/chzager/pagesnippets";
 
 	/**
 	 * HTML namespace URI.
 	 */
-	static HTML_NAMESPACE_URI = "http://www.w3.org/1999/xhtml";
+	HTML_NAMESPACE_URI = "http://www.w3.org/1999/xhtml";
 
 	/**
 	 * Map of all loaded snippets.
@@ -80,7 +80,7 @@ const pageSnippets = new class pageSnippets
 	 * Imports a PageSnippet file.
 	 *
 	 * This instantly adds the scripts and stylesheets referenced in the file to the current HTML document.
-	 * You need to call {@linkcode pageSnippets.produce()} to get an element that can be added to the DOM.
+	 * You need to call {@linkcode produce()} to get an element that can be added to the DOM.
 	 *
 	 * @param {string} url URL of PageSnippets XML file to be loaded.
 	 * @param {HeadersInit} [headers] Custom headers to pass along with the request.
@@ -119,7 +119,7 @@ const pageSnippets = new class pageSnippets
 		{
 			for (const childNode of node.children)
 			{
-				if (childNode.namespaceURI === pageSnippets.PS_NAMESPACE_URI)
+				if (childNode.namespaceURI === this.PS_NAMESPACE_URI)
 				{
 					switch (childNode.localName)
 					{
@@ -129,7 +129,7 @@ const pageSnippets = new class pageSnippets
 								this.#snippets.set(snippetKey, {
 									source: url,
 									key: snippetKey,
-									namespace: childNode.firstElementChild.namespaceURI || pageSnippets.HTML_NAMESPACE_URI,
+									namespace: childNode.firstElementChild.namespaceURI || this.HTML_NAMESPACE_URI,
 									data: childNode.firstElementChild
 								});
 							}
@@ -155,7 +155,7 @@ const pageSnippets = new class pageSnippets
 			// `<ps:script>` nodes are always loaded last.
 			if (groupName === "")
 			{
-				for (const scriptNode of node.getElementsByTagNameNS(pageSnippets.PS_NAMESPACE_URI, "script"))
+				for (const scriptNode of node.getElementsByTagNameNS(this.PS_NAMESPACE_URI, "script"))
 				{
 					const scriptSrc = normalizePath(scriptNode.getAttribute("src"));
 					if (!document.querySelector(`script[src="${scriptSrc}"]`))
@@ -190,7 +190,7 @@ const pageSnippets = new class pageSnippets
 			}
 			const data = await response.text();
 			const xmlDocument = new DOMParser().parseFromString(data, "text/xml");
-			if (!((xmlDocument.documentElement.namespaceURI === pageSnippets.PS_NAMESPACE_URI) && (xmlDocument.documentElement.localName === "pagesnippets")))
+			if (!((xmlDocument.documentElement.namespaceURI === this.PS_NAMESPACE_URI) && (xmlDocument.documentElement.localName === "pagesnippets")))
 			{
 				throw new Error(`"${url}" is not a PageSnippets XML-document.`);
 			}
@@ -369,7 +369,7 @@ const pageSnippets = new class pageSnippets
 				for (const childSourceNode of sourceNode.children)
 				{
 					const location = this.#updateCallHistory(childSourceNode, currentSnippetSource, trace);
-					if ((childSourceNode.namespaceURI === pageSnippets.PS_NAMESPACE_URI) && (childSourceNode.localName === "if"))
+					if ((childSourceNode.namespaceURI === this.PS_NAMESPACE_URI) && (childSourceNode.localName === "if"))
 					{
 						const thisMatch = psTagProcessors["if"](childSourceNode, targetElement, data, location);
 						anyMatch = anyMatch || thisMatch;
@@ -378,7 +378,7 @@ const pageSnippets = new class pageSnippets
 							break;
 						}
 					}
-					else if ((childSourceNode.namespaceURI === pageSnippets.PS_NAMESPACE_URI) && (childSourceNode.localName === "else"))
+					else if ((childSourceNode.namespaceURI === this.PS_NAMESPACE_URI) && (childSourceNode.localName === "else"))
 					{
 						if (!anyMatch)
 						{
@@ -389,7 +389,7 @@ const pageSnippets = new class pageSnippets
 			},
 			"call-function": (sourceNode, targetElement, data, trace) =>
 			{
-				const functionName = sourceNode.getAttributeNS(pageSnippets.PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name");
+				const functionName = sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name");
 				if (typeof data[functionName] !== "function")
 				{
 					throw new ReferenceError(`Reference to call "${functionName}" is not a function.\n` + this.#traceToString(trace));
@@ -397,7 +397,7 @@ const pageSnippets = new class pageSnippets
 				const args = [];
 				for (const child of sourceNode.children)
 				{
-					if ((child.namespaceURI === pageSnippets.PS_NAMESPACE_URI) && (child.localName === "argument"))
+					if ((child.namespaceURI === this.PS_NAMESPACE_URI) && (child.localName === "argument"))
 					{
 						args.push(resolveVariables(child.getAttribute("value"), data));
 					}
@@ -426,7 +426,7 @@ const pageSnippets = new class pageSnippets
 					}
 					return result;
 				};
-				const listKey = sourceNode.getAttributeNS(pageSnippets.PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
+				const listKey = sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
 				const list = getObjectValueByPath(data, listKey);
 				if (!Array.isArray(list))
 				{
@@ -447,7 +447,7 @@ const pageSnippets = new class pageSnippets
 			},
 			"for-empty": (sourceNode, targetElement, data, trace) =>
 			{
-				const listKey = sourceNode.getAttributeNS(pageSnippets.PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
+				const listKey = sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "list") || sourceNode.getAttribute("list");
 				const list = getObjectValueByPath(data, listKey);
 				if (!Array.isArray(list))
 				{
@@ -460,7 +460,7 @@ const pageSnippets = new class pageSnippets
 			},
 			"if": (sourceNode, targetElement, data, trace) =>
 			{
-				const testExpression = sourceNode.getAttributeNS(pageSnippets.PS_NAMESPACE_URI, "test") || sourceNode.getAttribute("test");
+				const testExpression = sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "test") || sourceNode.getAttribute("test");
 				const functionBody = `return (${testExpression.replace(/'?\{\{/g, "this.").replace(/\}\}'?/g, "")})`;
 				let testResult;
 				try
@@ -479,14 +479,14 @@ const pageSnippets = new class pageSnippets
 			},
 			"insert-snippet": (sourceNode, targetElement, data, trace) =>
 			{
-				const snippetPath = this.#normalizeSnippetKey(resolveVariables(sourceNode.getAttributeNS(pageSnippets.PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name"), data));
+				const snippetPath = this.#normalizeSnippetKey(resolveVariables(sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name"), data));
 				if (!this.#snippets.has(snippetPath))
 				{
 					throw new ReferenceError(`Unknown snippet "${snippetPath}".\n` + this.#traceToString(trace));
 				}
 				for (const child of sourceNode.children)
 				{
-					if ((child.namespaceURI === pageSnippets.PS_NAMESPACE_URI) && (child.localName === "param"))
+					if ((child.namespaceURI === this.PS_NAMESPACE_URI) && (child.localName === "param"))
 					{
 						data[child.getAttribute("name")] = resolveVariables(child.getAttribute("value"), data);
 					}
@@ -497,7 +497,6 @@ const pageSnippets = new class pageSnippets
 			{
 				targetElement.appendChild(document.createTextNode(resolveVariables(sourceNode.firstChild.data, data, sourceNode)));
 			},
-
 		};
 
 		/**
@@ -508,7 +507,7 @@ const pageSnippets = new class pageSnippets
 		{
 			for (const attribute of sourceNode.attributes)
 			{
-				if (attribute.namespaceURI === pageSnippets.PS_NAMESPACE_URI)
+				if (attribute.namespaceURI === this.PS_NAMESPACE_URI)
 				{
 					if (attribute.localName.startsWith("on"))
 					{
@@ -534,7 +533,7 @@ const pageSnippets = new class pageSnippets
 				{
 					case NODETYPE_ELEMENT:
 						const location = this.#updateCallHistory(childSourceNode, currentSnippetSource, trace);
-						if (childSourceNode.namespaceURI === pageSnippets.PS_NAMESPACE_URI)
+						if (childSourceNode.namespaceURI === this.PS_NAMESPACE_URI)
 						{
 							const func = psTagProcessors[childSourceNode.localName];
 							if (func)
@@ -548,7 +547,7 @@ const pageSnippets = new class pageSnippets
 						}
 						else
 						{
-							const element = document.createElementNS(childSourceNode.namespaceURI || pageSnippets.HTML_NAMESPACE_URI, childSourceNode.tagName);
+							const element = document.createElementNS(childSourceNode.namespaceURI || this.HTML_NAMESPACE_URI, childSourceNode.tagName);
 							processNode(childSourceNode, element, data, location);
 							postProduction(childSourceNode, element, data, location);
 							targetElement.appendChild(element);
@@ -583,11 +582,11 @@ const pageSnippets = new class pageSnippets
 		 */
 		const postProduction = (sourceNode, targetElement, data, trace) =>
 		{
-			const postProductionFunction = sourceNode.getAttributeNS(pageSnippets.PS_NAMESPACE_URI, "postproduction");
+			const postProductionFunction = sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "postproduction");
 			if (postProductionFunction)
 			{
 				console.warn("The 'ps:postproduction' attribute is deprecated and will be discontinued at the end of 2026.");
-				targetElement.removeAttributeNS(pageSnippets.PS_NAMESPACE_URI, "postproduction");
+				targetElement.removeAttributeNS(this.PS_NAMESPACE_URI, "postproduction");
 				const referencedFunction = getObjectValueByPath(data, postProductionFunction);
 				if (typeof referencedFunction !== "function")
 				{
@@ -682,12 +681,3 @@ const pageSnippets = new class pageSnippets
 		return Array.from(groups).sort().map(g => g + "/");
 	}
 };
-
-/**
- * @callback PsProductionFunction
- * @param {Element} sourceNode Source that defined the element that is currently build.
- * @param {Element} targetElement Currently processed target element.
- * @param {PageSnippets.ProductionData} data Data provided to build the target element.
- * @param {string} trace List of source document nodes that lead to this function call.
- * @returns {void}
- */

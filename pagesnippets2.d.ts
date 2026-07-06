@@ -5,13 +5,13 @@
  * @license Apache-2.0 - See the full license text at http://www.apache.org/licenses/LICENSE-2.0
  * @link https://github.com/chzager/pagesnippets
  */
-declare const pageSnippets: pageSnippets
-type pageSnippets = {
+declare const pageSnippets: PageSnippets
+interface PageSnippets {
 	/**
 	 * Imports a PageSnippets file.
 	 *
 	 * This instantly adds the scripts and stylesheets referenced in the file to the current HTML document.
-	 * You need to call {@linkcode pageSnippets.produce()} to get a snippet node that can be placed on the page.
+	 * You need to call {@linkcode produce()} to get a snippet node that can be placed on the page.
 	 *
 	 * @param url URL of PageSnippets XML file to be loaded.
 	 * @param headers Custom headers to pass along with the request.
@@ -61,12 +61,12 @@ type pageSnippets = {
 };
 
 /**
- * Types used in {@linkcode pageSnippets}.
+ * Types used in `pageSnippets`.
  */
 declare namespace PageSnippets {
 	/** Data record that is used for producing a page snippet or any of a page snippets elements. */
 	type ProductionData = {
-		[key: string]: any;
+		[k: string]: any;
 	}
 
 	/**
