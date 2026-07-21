@@ -6,7 +6,7 @@
  * @link https://github.com/chzager/pagesnippets
  */
 declare const pageSnippets: PageSnippets
-interface PageSnippets {
+interface PageSnippets<T extends Element = HTMLElement> {
 	/**
 	 * Imports a PageSnippets file.
 	 *
@@ -26,7 +26,7 @@ interface PageSnippets {
 	 * @param locale The locale to be used when formatting numbers and dates in `<ps:text>` nodes.
 	 * @returns The element that was build from the snippet using the given data.
 	 */
-	produce(snippetKey: string, data?: PageSnippets.ProductionData, locale?: Intl.LocalesArgument): Element;
+	produce<E extends Element = T>(snippetKey: string, data?: PageSnippets.ProductionData): E;
 
 	/**
 	 * Returns a boolean of whether a certain snippet does exist or not.
