@@ -94,16 +94,14 @@ const pageSnippets = new class
 		 */
 		const normalizePath = (path) =>
 		{
-			if (/^(http[s]?:\/\/|\/)/.test(path)) // Ignore absolute paths.
+			let result = (/^(http[s]?:\/\/|\/)/.test(path))
+				? path
+				: url.substring(0, url.lastIndexOf("\/") + 1) + path.replace(/^\.\//, "");
+			while (result.includes("../"))
 			{
-				return path;
+				result = result.replace(/[^/]+\/\.\.\//, "");
 			}
-			else
-			{
-				const templateRoot = url.substring(0, url.lastIndexOf("\/") + 1); // Remove the file name from `url`, leaves the path only.
-				path = path.replace(/^\.\//, ""); // Remove "./" at the beginning of `path`.
-				return templateRoot.concat(path).replace(/[^/]+\/\.\.\//g, ""); // Resolve parent directories ("../").
-			}
+			return result;
 		};
 		/**
 		 * Parses a PageSnippets node. Iterates through all `<ps:snippet>` and `<ps:snippet-group>` nodes.
