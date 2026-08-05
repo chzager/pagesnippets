@@ -37,7 +37,7 @@
 	</xsd:element>
 	<xsd:element name="attribute">
 		<xsd:complexType>
-			<xsd:choice>
+			<xsd:choice maxOccurs="unbounded">
 				<xsd:element ref="ps:choose" />
 				<xsd:element ref="ps:if" />
 				<xsd:element ref="ps:text" />

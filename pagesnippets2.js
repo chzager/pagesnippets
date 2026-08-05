@@ -349,9 +349,23 @@ const pageSnippets = new class
 		const psTagProcessors = {
 			"attribute": (sourceNode, targetElement, data, trace) =>
 			{
-				const helper = document.createElement("div");
-				processNode(sourceNode.firstElementChild, helper, data, trace);
-				targetElement.setAttribute(sourceNode.attributes.getNamedItem("name").value, helper.textContent);
+				let textValue = "";
+				for (const childNode of sourceNode.children)
+				{
+					const location = this.#updateCallHistory(childNode, currentSnippetSource, trace);
+					const func = psTagProcessors[childNode.localName];
+					if ((childNode.namespaceURI === this.PS_NAMESPACE_URI) && ["text", "choose", "if"].includes(childNode.localName) && func)
+					{
+						const helper = document.createElement("div");
+						func(childNode, helper, data, location);
+						textValue += helper.textContent;
+					}
+					else
+					{
+						console.warn(`Element "${childNode.nodeName}" not allowed here.\n${this.#traceToString(location)}`);
+					}
+				}
+				targetElement.setAttribute(sourceNode.attributes.getNamedItem("name").value, textValue);
 			},
 			"choose": (sourceNode, targetElement, data, trace) =>
 			{
