@@ -402,6 +402,7 @@ const pageSnippets = new class
 				}
 				data[functionName](targetElement, data, ...args);
 			},
+			"else": () => {}, // suppress "element not allowed" messages
 			"for-each": (sourceNode, targetElement, data, trace) =>
 			{
 				const ObjectAssignEx = (...sources) =>
