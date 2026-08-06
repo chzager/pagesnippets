@@ -517,6 +517,8 @@ const pageSnippets = new class
 		 * @type {PsProductionFunction}
 		 */
 		const processNode = (sourceNode, targetElement, data, trace) =>
+{
+			if (sourceNode.namespaceURI !== this.PS_NAMESPACE_URI)
 		{
 			for (const attribute of sourceNode.attributes)
 			{
@@ -538,6 +540,7 @@ const pageSnippets = new class
 				else
 				{
 					targetElement.setAttributeNS(attribute.namespaceURI, attribute.localName, resolveVariables(attribute.value, data));
+}
 				}
 			}
 			for (const childSourceNode of sourceNode.childNodes)
