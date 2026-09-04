@@ -417,6 +417,20 @@ const pageSnippets = new class
 				data[functionName](targetElement, data, ...args);
 			},
 			"else": () => {}, // suppress "element not allowed" messages
+			"event-handler": (sourceNode, targetElement, data, trace) =>
+			{
+				const eventType = sourceNode.attributes.getNamedItem("on").value;
+				const funcName = sourceNode.attributes.getNamedItem("call").value;
+				const func = getObjectValueByPath(data, funcName);
+				if (typeof func === "function")
+				{
+					targetElement.addEventListener(eventType, func);
+				}
+				else
+				{
+					console.warn(`Event handler "${funcName}" is not a function.\n` + this.#traceToString(trace));
+				}
+			},
 			"for-each": (sourceNode, targetElement, data, trace) =>
 			{
 				const ObjectAssignEx = (...sources) =>

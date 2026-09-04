@@ -72,6 +72,12 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+	<xsd:element name="event-handler">
+		<xsd:complexType>
+			<xsd:attribute name="on" type="xsd:string" use="required"></xsd:attribute>
+			<xsd:attribute name="call" type="xsd:string" use="required"></xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 	<xsd:element name="for-each" type="ps:ctContentList" />
 	<xsd:element name="for-empty" type="ps:ctContentList" />
 	<xsd:element name="if" type="ps:ctContentTest" />
