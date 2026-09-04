@@ -26,7 +26,7 @@ const pageSnippets = new class
 
 	/**
 	 * From a snippet key or a path crumb array this returns a normalized key string.
-	 * @param {string|Array<string>} key Snippet name including its path, or an array with an item for each path crumb and the snippets name.
+	 * @param {string} key Snippet name including its path, or an array with an item for each path crumb and the snippets name.
 	 * @returns The normalized snippet key, including a leading slash and its full path.
 	 * @example
 	 * normalizeSnippetKey(["foo", "bar"])
@@ -59,11 +59,9 @@ const pageSnippets = new class
 		let nodeAsString = node.nodeName;
 		for (const att of node.attributes)
 		{
-			nodeAsString += " " + `${att.name}="${att.value}"`;
+			nodeAsString += `\u0020${att.name}="${att.value}"`;
 		}
-		return trace + "\n"
-			+ `<${nodeAsString}>`
-			+ "\t@" + source;
+		return trace + `\n<${nodeAsString}>\t@${source}`;
 	}
 
 	/**
@@ -371,8 +369,8 @@ const pageSnippets = new class
 			{
 				const CHOOSE_MODE_STRICT = "strict";
 				const CHOOSE_MODE_LAX = "lax";
-				let chooseMode = (RegExp(`^${CHOOSE_MODE_STRICT}$|^${CHOOSE_MODE_LAX}$`).exec((sourceNode.getAttribute("mode") || CHOOSE_MODE_STRICT)) || [""])[0];
-				if (chooseMode === "")
+				let chooseMode = RegExp(`^${CHOOSE_MODE_STRICT}$|^${CHOOSE_MODE_LAX}$`).exec((sourceNode.getAttribute("mode") || CHOOSE_MODE_STRICT))?.[0];
+				if (!chooseMode)
 				{
 					console.warn(`Invalid choose-mode "${sourceNode.getAttribute("mode")}", using "strict".\n` + this.#traceToString(trace));
 					chooseMode = CHOOSE_MODE_STRICT;
@@ -390,18 +388,15 @@ const pageSnippets = new class
 							break;
 						}
 					}
-					else if ((childSourceNode.namespaceURI === this.PS_NAMESPACE_URI) && (childSourceNode.localName === "else"))
+					else if ((childSourceNode.namespaceURI === this.PS_NAMESPACE_URI) && (childSourceNode.localName === "else") && !anyMatch)
 					{
-						if (!anyMatch)
-						{
-							processNode(childSourceNode, targetElement, data, location);
-						}
+						processNode(childSourceNode, targetElement, data, location);
 					}
 				}
 			},
 			"call-function": (sourceNode, targetElement, data, trace) =>
 			{
-				const functionName = sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name");
+				const functionName = sourceNode.getAttribute("name");
 				if (typeof data[functionName] !== "function")
 				{
 					throw new ReferenceError(`Reference to call "${functionName}" is not a function.\n` + this.#traceToString(trace));
@@ -469,7 +464,7 @@ const pageSnippets = new class
 						_position: index + 1,
 						_count: itemsCount,
 					}), trace);
-					index += 1;
+					index++;
 				}
 			},
 			"for-empty": (sourceNode, targetElement, data, trace) =>
@@ -531,30 +526,30 @@ const pageSnippets = new class
 		 * @type {PsProductionFunction}
 		 */
 		const processNode = (sourceNode, targetElement, data, trace) =>
-{
-			if (sourceNode.namespaceURI !== this.PS_NAMESPACE_URI)
 		{
-			for (const attribute of sourceNode.attributes)
+			if (sourceNode.namespaceURI !== this.PS_NAMESPACE_URI)
 			{
-				if (attribute.namespaceURI === this.PS_NAMESPACE_URI)
+				for (const attribute of sourceNode.attributes)
 				{
-					if (attribute.localName.startsWith("on"))
+					if (attribute.namespaceURI === this.PS_NAMESPACE_URI)
 					{
-						const referencedFunction = getObjectValueByPath(data, attribute.value);
-						if (typeof referencedFunction === "function")
+						if (attribute.localName.startsWith("on"))
 						{
-							targetElement[attribute.localName] = referencedFunction;
-						}
-						else
-						{
-							console.warn(`Event handler "${attribute.value}" is not a function.\n` + this.#traceToString(trace));
+							const referencedFunction = getObjectValueByPath(data, attribute.value);
+							if (typeof referencedFunction === "function")
+							{
+								targetElement[attribute.localName] = referencedFunction;
+							}
+							else
+							{
+								console.warn(`Event handler "${attribute.value}" is not a function.\n` + this.#traceToString(trace));
+							}
 						}
 					}
-				}
-				else
-				{
-					targetElement.setAttributeNS(attribute.namespaceURI, attribute.localName, resolveVariables(attribute.value, data));
-}
+					else
+					{
+						targetElement.setAttributeNS(attribute.namespaceURI, attribute.localName, resolveVariables(attribute.value, data));
+					}
 				}
 			}
 			for (const childSourceNode of sourceNode.childNodes)
