@@ -501,7 +501,17 @@ const pageSnippets = new class
 			},
 			"insert-snippet": (sourceNode, targetElement, data, trace) =>
 			{
-				const snippetPath = this.#normalizeSnippetKey(resolveVariables(sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name"), data));
+				let snippetPath = resolveVariables(sourceNode.getAttributeNS(this.PS_NAMESPACE_URI, "name") || sourceNode.getAttribute("name"), data);
+				if (snippetPath.startsWith("."))
+				{
+					const currentPath = trace.substring(trace.lastIndexOf(":/") + 1);
+					snippetPath = currentPath + "/../" + snippetPath.replace(/^\.\//, "");
+					while (snippetPath.includes("../"))
+					{
+						snippetPath = snippetPath.replace(/[^\/]+\/\.\.\//, "");
+					}
+				}
+				snippetPath = this.#normalizeSnippetKey(snippetPath);
 				if (!this.#snippets.has(snippetPath))
 				{
 					throw new ReferenceError(`Unknown snippet "${snippetPath}".\n` + this.#traceToString(trace));
