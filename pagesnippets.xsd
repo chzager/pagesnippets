@@ -126,6 +126,7 @@
 	<xsd:complexType name="ctContentTest">
 		<xsd:choice minOccurs="0" maxOccurs="unbounded">
 			<xsd:any namespace="##other" processContents="lax" />
+			<xsd:element ref="ps:attribute" />
 			<xsd:element ref="ps:call-function" />
 			<xsd:element ref="ps:choose" />
 			<xsd:element ref="ps:if" />
