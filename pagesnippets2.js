@@ -509,9 +509,9 @@ const pageSnippets = new class
 				{
 					testResult = Function(functionBody).call(data);
 				}
-				catch (err)
+				catch (cause)
 				{
-					throw new err.constructor(`Cannot evaluate expression "${testExpression}": ${err.message}.\n` + this.#traceToString(trace));
+					throw new Error(`Cannot evaluate expression "${testExpression}": ${cause instanceof Error ? cause.message : String(cause)}.\n` + this.#traceToString(trace), { cause: cause });
 				};
 				if (testResult === true)
 				{
