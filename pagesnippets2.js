@@ -65,13 +65,33 @@ const pageSnippets = new class
 	}
 
 	/**
-	 * For logging purposes, this manipulates the _trace_ string (which is a call history) whereas all "xmlns" attributes are being removed,
-	 * so in the resulting string the XML tags are shorter and just like in the source document.
+	 * For logging purposes, this manipulates the _trace_ string (which is a call history)
+	 * whereas all "xmlns" attributes are being removed, so in the resulting string the XML tags
+	 * are shorter and just like in the source document.
 	 * @param {string} trace Call history string.
 	 */
 	#traceToString (trace)
 	{
-		return trace.replace(/\sxmlns(=|:[^=]+=)"[^"]+"/gi, "").trim();
+		let result = [];
+		const lines = trace.replace(/\sxmlns(=|:[^=]+=)"[^"]+"/gi, "").split("\n");
+		let currentPath = "";
+		let intend = 1;
+		for (const line of lines)
+		{
+			if (!!line.trim())
+			{
+				const [tag, path] = line.split("\t");
+				if (path !== currentPath)
+				{
+					result.push(path);
+					currentPath = path;
+					intend = 1;
+				}
+				result.push("\u0020".repeat(intend) + tag);
+				intend++;
+			}
+		}
+		return result.join("\n");
 	}
 
 	/**
