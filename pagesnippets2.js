@@ -233,13 +233,20 @@ const pageSnippets = new class
 			"SELECT": ["value"],
 		}));
 
-		const getObjectValueByPath = (object, path, pathSeparator = ".") =>
+		/**
+		 * Extracts a value from an an object at the specified path.
+		 * @param {Object} object
+		 * @param {string} path
+		 */
+		const getObjectValueByPath = (object, path) =>
 		{
+			const CRUMB_SEPARATOR = ".";
 			let result = undefined;
 			if (!!object && !!path)
 			{
-				const steps = path.split(pathSeparator);
-				result = (steps.length === 1) ? object[steps[0]] : getObjectValueByPath(object[steps[0]], steps.splice(1).join(pathSeparator), pathSeparator);
+				const crumbs = path.split(CRUMB_SEPARATOR);
+				const key = crumbs.shift();
+				result = (crumbs.length === 0) ? object[key] : getObjectValueByPath(object[key], crumbs.join(CRUMB_SEPARATOR));
 			}
 			return result;
 		};
